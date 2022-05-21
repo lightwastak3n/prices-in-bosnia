@@ -1,10 +1,7 @@
 import requests
 import database_handler
-
 from bs4 import BeautifulSoup
 
-
-MAIN_URL = "https://www.olx.ba/pretraga?kategorija=18&id=1&stanje=0&vrstapregleda=tabela&sort_order=desc&sort_po=datum&od=100&vrsta=samoprodaja"
 
 # Site seems to be blocking regular requests so use user agent
 def get_page(url):
@@ -17,9 +14,9 @@ def get_page(url):
 
 # Get all links that are under div class: "naslov"
 # Add links with new ids to the database
-def main():
+def main(main_url, url_table, data_table):
     new_listings = 0
-    soup = get_page(MAIN_URL)
+    soup = get_page(main_url)
     listing_divs = soup.findAll("div", {'class': 'naslov'})
     for listing in listing_divs:
         link_tag = listing.find("a")
@@ -33,4 +30,4 @@ def main():
             print("Link not found. Empty listing bar.")
         except Exception as e:
             print(f"Unexpected error - {e}")
-    return new_listings 
+    print(f"Found {new_listings} new listings")
