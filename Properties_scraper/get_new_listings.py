@@ -31,3 +31,4 @@ def main(main_url, url_table, data_table):
         except Exception as e:
             print(f"Unexpected error - {e}")
     print(f"Found {new_listings} new listings")
+
