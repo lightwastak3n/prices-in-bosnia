@@ -25,6 +25,7 @@ class Server:
         Initializes Server object and populates attributes by loading the from the .json file.
         """
         self.load_config()
+        # test
 
     def load_config(self):
         """
