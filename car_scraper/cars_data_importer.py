@@ -1,7 +1,6 @@
 import csv
 
-from car import Car
-from car_server import Server
+from db_server.sql_server import Server
 from columns_names import specs_columns_mapping
 
 

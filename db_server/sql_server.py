@@ -3,7 +3,7 @@ import json
 import os
 
 from mysql.connector import Error
-from log_maker import write_log_info, write_log_error
+from utils.log_maker import write_log_info, write_log_error
 
 class Server:
     """
@@ -25,6 +25,7 @@ class Server:
         Initializes Server object and populates attributes by loading the from the .json file.
         """
         self.load_config()
+        self.rs_mapping = {"Kuca": "houses", "Stan": "flats", "Zemljiste": "land"}
 
     def load_config(self):
         """
@@ -38,7 +39,7 @@ class Server:
         self.DATABASE = config['database']
         self.USER = config['user']
         self.PASSWORD = config['password']
-    
+
     def create_connection(self):
         """
         Creates connection and stores it as attribute.
@@ -51,11 +52,11 @@ class Server:
         """
         try:
             connection = mysql.connector.connect(
-                    host=self.HOST,
-                    port=self.PORT,
-                    database=self.DATABASE,
-                    user=self.USER,
-                    password=self.PASSWORD)
+                host=self.HOST,
+                port=self.PORT,
+                database=self.DATABASE,
+                user=self.USER,
+                password=self.PASSWORD)
             if connection.is_connected():
                 return connection
         except Error as e:
@@ -174,17 +175,168 @@ class Server:
                             datum DATE,
                             FOREIGN KEY(id) REFERENCES links_cars(id));''')
 
+    def create_table_rs_links(self):
+        """
+        Creates table that stores id, links, and status (scraped or not) of a real estate found on main pages of their respective listings.
+        """
+        with self.connection.cursor() as cursor:
+            cursor.execute('''CREATE TABLE rs_links
+                (id INT PRIMARY KEY NOT NULL UNIQUE,
+                link TEXT NOT NULL,
+                type TEXT NOT NULL,
+                scraped INT);''')
+
+    def create_table_houses(self):
+        """
+        Creates a table that stores houses and their properties.
+        """
+        with self.connection.cursor() as cursor:
+            cursor.execute('''CREATE TABLE houses
+                            (id	INT NOT NULL UNIQUE,
+                            ime TEXT,
+                            datum DATE,
+                            cijena INT,
+                            kvadrata INT,
+                            stanje TEXT,
+                            lokacija TEXT,
+                            adresa TEXT,
+                            lat FLOAT,
+                            long FLOAT,
+                            godina_izgradnje TEXT,
+                            broj_soba INT,
+                            broj_spratova INT,
+                            okucnica_kvadratura INT,
+                            namjestena INT,
+                            vrsta_grijanja TEXT,
+                            vrsta_poda TEXT,
+                            struja INT,
+                            voda INT,
+                            primarna_orijentacija TEXT,
+                            balkon INT,
+                            kablovska INT,
+                            ostava INT,
+                            parking INT,
+                            podrum INT,
+                            uknjizeno INT,
+                            vrsta_oglasa TEXT,
+                            kanalizacija TEXT,
+                            alarm INT,
+                            blindirana_vrata INT,
+                            garaza INT,
+                            internet INT,
+                            klima INT,
+                            nedavno_adaptirana INT,
+                            plin INT,
+                            telefon INT,
+                            video_nadzor INT,
+                            bazen INT,
+                            kompanija INT,
+                            datum_objave DATE,
+                            obnovljen DATE,
+                            broj_pregleda INT,
+                            FOREIGN KEY(id) REFERENCES rs_links(id));''')
+
+    def create_table_flats(self):
+        """
+        Creates a table that stores flats and their properties.
+        """
+        with self.connection.cursor() as cursor:
+            cursor.execute('''CREATE TABLE flats
+                            (id	INT NOT NULL UNIQUE,
+                            ime TEXT,
+                            datum DATE,
+                            cijena INT,
+                            kvadrata INT,
+                            stanje TEXT,
+                            lokacija TEXT,
+                            lat FLOAT,
+                            lang FLOAT,
+                            adresa TEXT,
+                            godina_izgradnje TEXT,
+                            broj_soba FLOAT,
+                            sprat TEXT,
+                            balkon INT,
+                            kvadratura_balkona INT,
+                            namjesten INT,
+                            iznajmljeno INT,
+                            vrsta_poda TEXT,
+                            vrsta_grijanja TEXT,
+                            kanalizacija INT,
+                            parking INT,
+                            struja INT,
+                            uknjizeno INT,
+                            voda INT,
+                            vrsta_oglasa TEXT,
+                            blindirana_vrata INT,
+                            internet INT,
+                            kablovska INT,
+                            nedavno_adaptiran INT,
+                            plin INT,
+                            podrum INT,
+                            rezije INT,
+                            primarna_orijentacija TEXT,
+                            klima INT,
+                            lift INT,
+                            telefon INT,
+                            video_nadzor INT,
+                            za_studente INT,
+                            ostava INT,
+                            kucni_ljubimci INT,
+                            novogradnja INT,
+                            alarm INT,
+                            garaza INT,
+                            kompanija INT,
+                            datum_objave DATE,
+                            obnovljen DATE,
+                            broj_pregleda INT,
+                            FOREIGN KEY(id) REFERENCES rs_links(id));''')
+
+    def create_table_land(self):
+        """
+        Creates a table that stores lands and their properties.
+        """
+        with self.connection.cursor() as cursor:
+            cursor.execute('''CREATE TABLE land
+                            (id	INT NOT NULL UNIQUE,
+                            ime TEXT,
+                            datum DATE,
+                            cijena INT,
+                            kvadrata INT,
+                            lokacija TEXT,
+                            lat FLOAT,
+                            long FLOAT,
+                            vrsta_oglasa TEXT,
+                            uknjizeno INT,
+                            gradjevinska_dozvola INT,
+                            urbanisticka_dozvola INT,
+                            komunalni_prikljucak INT,
+                            udaljenost_rijeka INT,
+                            iznajmljeno INT,
+                            prilaz TEXT,
+                            kompanija INT,
+                            obnovljen DATE,
+                            datum_objave DATE,
+                            broj_pregleda INT,
+                            FOREIGN KEY(id) REFERENCES rs_links(id));''')
+
     def database_setup(self):
         """
         Create database and car tables.
         """
         self.create_connection()
         self.create_database()
+
         self.create_table_car_links()
         self.create_table_cars()
+
+        self.create_table_rs_links()
+        self.create_table_houses()
+        self.create_table_flats()
+        self.create_table_land()
+        
         self.close_connection()
 
-    def car_in_db(self, car_id):
+    def item_in_db(self, table, car_id):
         """
         Checks if a car is in database.
 
@@ -196,7 +348,7 @@ class Server:
         """
         self.create_connection()
         with self.connection.cursor() as cursor:
-            cursor.execute(f"SELECT id FROM links_cars WHERE id='{car_id}'")
+            cursor.execute(f"SELECT id FROM {table} WHERE id='{car_id}'")
             result = cursor.fetchone()
         self.close_connection()
         if result:
@@ -216,8 +368,22 @@ class Server:
             result = cursor.fetchall()
         self.close_connection()
         return result
+    
+    def get_non_scraped_rs(self):
+        """
+        Gets the list of rs that havent been scraped yet.
 
-    def add_link(self, car_id, link, scraped):
+        Returns:
+            result: 2d list of the rs that havent been scraped that contains [rs_id, rs_link]
+        """
+        self.create_connection()
+        with self.connection.cursor() as cursor:
+            cursor.execute("SELECT id, link, type FROM rs_links WHERE scraped=0;")
+            result = cursor.fetchall()
+        self.close_connection()
+        return result
+
+    def add_car_link(self, car_id, link, scraped):
         """
         Adds new cars to the links_cars table.
 
@@ -229,11 +395,29 @@ class Server:
         self.create_connection()
         with self.connection.cursor() as cursor:
             cursor.execute(f"INSERT INTO links_cars VALUES(%s, %s, %s);",
-                     (car_id, link, scraped))
+                           (car_id, link, scraped))
             self.connection.commit()
         self.close_connection()
         write_log_info(f"{car_id} - {link} added to the database.")
         print(f"{car_id} - {link} added to the database.")
+    
+    def add_rs_link(self, rs_id, rs_link, type, scraped):
+        """
+        Adds new cars to the links_cars table.
+
+        Args:
+            car_id: id of the car
+            link: link of the car listing
+            scraped: 0 since it is the new car and hasnt been scraped yet
+        """
+        self.create_connection()
+        with self.connection.cursor() as cursor:
+            cursor.execute(f"INSERT INTO rs_links VALUES(%s, %s, %s, %s);",
+                           (rs_id, rs_link, type, scraped))
+            self.connection.commit()
+        self.close_connection()
+        write_log_info(f"{rs_id} - {rs_link} added to the database.")
+        print(f"{rs_id} - {rs_link} added to the database.")
 
     def get_missing_seller_cars(self):
         """
@@ -253,13 +437,14 @@ class Server:
         self.close_connection()
         return result
 
-    def mark_as_scraped(self, car_id):
+    def mark_as_scraped(self, table, car_id):
         """
-        Updates the status of car in links_cars from scraped=0 to scraped=1.
+        Updates the status of a given id from scraped=0 to scraped=1.
         """
         self.create_connection()
         with self.connection.cursor() as cursor:
-            cursor.execute(f"UPDATE links_cars SET scraped=1 WHERE id={car_id};")
+            cursor.execute(
+                f"UPDATE {table} SET scraped=1 WHERE id={car_id};")
             self.connection.commit()
         self.close_connection()
 
@@ -273,7 +458,8 @@ class Server:
         """
         self.create_connection()
         with self.connection.cursor() as cursor:
-            cursor.execute(f"UPDATE cars SET radnja={value} WHERE id={car_id};")
+            cursor.execute(
+                f"UPDATE cars SET radnja={value} WHERE id={car_id};")
             self.connection.commit()
         self.close_connection()
 
@@ -305,13 +491,55 @@ class Server:
         self.create_connection()
         try:
             with self.connection.cursor() as cursor:
-                cursor.execute(sql,values)
+                cursor.execute(sql, values)
             self.connection.commit()
             write_log_info(f"Scraped car {data['ime']}")
             print(f"Scraped car {data['ime']}")
         except Exception as e:
-            print(f"Error {e}. Car {data['ime']} doesn't have complete data. Skipping.")
-            write_log_error(f"Error: {e}. Skipping car.") 
+            print(
+                f"Error {e}. Car {data['ime']} doesn't have complete data. Skipping.")
+            write_log_error(f"Error: {e}. Skipping car.")
+        finally:
+            self.connection.close()
+
+    def get_rs_data(self, type, rs_id):
+        """
+        Gets all the data for a given rs_id
+
+        Args:
+            type: type of rs (house, flat, land)
+            rs_id: id of the real estate.
+
+        Returns:
+            result: list of all of the rs properties
+        """
+        self.create_connection()
+        table_name = self.mapping[type]
+        with self.connection.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM {table_name} WHERE id={rs_id}")
+            result = cursor.fetchone()
+        self.close_connection()
+        return result
+
+    def insert_rs_data(self, type, data):
+        """
+        Inserts all the data from a given rs into correct table.
+        """
+        table_name = self.rs_mapping[type]
+        columns = ", ".join([str(x) for x in list(data.keys())])
+        placeholders = ", ".join(["%s"] * len(data))
+        sql = f"INSERT INTO {table_name}({columns}) VALUES({placeholders});"
+        values = list(data.values())
+        self.create_connection()
+        try:
+            with self.connection.cursor() as cursor:
+                cursor.execute(sql, values)
+            self.connection.commit()
+            write_log_info(f"Scraped rs {data['ime']}")
+            print(f"Scraped - {data['ime']}")
+        except Exception as e:
+            print(f"Error {e}. Rs {data['ime']} doesn't have complete data. Skipping.")
+            write_log_error(f"Error: {e}. Skipping rs.")
         finally:
             self.connection.close()
 
@@ -322,11 +550,15 @@ class Server:
         Returns:
             Message that is sent to ntfy that contains number of scraped cars and number of cars left to scrape.
         """
-        non_scraped = len(self.get_non_scraped_cars())
+        non_scraped_cars = len(self.get_non_scraped_cars())
+        non_scraped_rs = len(self.get_non_scraped_rs())
         self.create_connection()
         with self.connection.cursor() as cursor:
             cursor.execute("SELECT COUNT(id) FROM links_cars;")
             result = cursor.fetchall()
-        car_scraped = result[0][0]
+            car_scraped = result[0][0]
+            cursor.execute("SELECT COUNT(id) FROM rs_links;")
+            result = cursor.fetchall()
+            rs_scraped = result[0][0]
         self.close_connection()
-        return f"Cars scraped {car_scraped}. Left to scrape {non_scraped}."
+        return f"Cars scraped {car_scraped}. Left to scrape {non_scraped_cars}.\nRs scraped {rs_scraped}. Left to scrape {non_scraped_rs}."

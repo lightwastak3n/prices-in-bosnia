@@ -2,7 +2,7 @@ import os
 import logging
 
 ROOT = os.path.dirname(__file__)
-LOG_FILE = os.path.join(ROOT, "logs/car_scraper.log")
+LOG_FILE = os.path.join(ROOT, "../logs/car_scraper.log")
 
 logging.basicConfig(filename=LOG_FILE, format='%(asctime)s %(levelname)s %(message)s', level=logging.DEBUG)
 

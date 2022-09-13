@@ -3,8 +3,8 @@ import requests
 from datetime import date
 from bs4 import BeautifulSoup
 
-from car_server import Server
-from log_maker import write_log_info
+from db_server.sql_server import Server
+from utils.log_maker import write_log_info
 
 class CarScraper:
     """
@@ -75,8 +75,8 @@ class CarScraper:
         server.create_connection()
         total = 0
         for id, link in self.cars.items():
-            if not server.car_in_db(id):
-                server.add_link(id, link, 0)
+            if not server.item_in_db("links_cars", id):
+                server.add_car_link(id, link, 0)
                 total += 1
         server.close_connection()
         return total
@@ -126,7 +126,7 @@ class CarScraper:
             del data["Cijena - Hitna prodaja [?]"]
         elif "Akcijska cijena - " in str(car_soup) and data.get('Cijena') == None:
             self.akcijska_cijena(car_soup, data)
-
+            
         if "Cijena" in data and data["Cijena"] == "Po dogovoru":
             data["Cijena"] = "0"
 

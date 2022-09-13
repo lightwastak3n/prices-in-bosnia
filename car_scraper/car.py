@@ -1,4 +1,4 @@
-from columns_names import specs_columns_mapping
+from car_scraper.columns_names import specs_columns_mapping
 
 class Car:
     """
