@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import requests
 
-from data_server import Server
+from db_server.sql_server import Server
 
 
 def send_ntfy(msg):
