@@ -554,11 +554,11 @@ class Server:
         non_scraped_rs = len(self.get_non_scraped_rs())
         self.create_connection()
         with self.connection.cursor() as cursor:
-            cursor.execute("SELECT COUNT(id) FROM links_cars;")
+            cursor.execute("SELECT COUNT(id) FROM cars;")
             result = cursor.fetchall()
-            car_scraped = result[0][0]
-            cursor.execute("SELECT COUNT(id) FROM rs_links;")
+            total_cars = result[0][0]
+            cursor.execute("SELECT (SELECT COUNT(id) FROM houses) + (SELECT COUNT(id) FROM flats) + (SELECT COUNT(id) FROM land);")
             result = cursor.fetchall()
-            rs_scraped = result[0][0]
+            total_rs = result[0][0]
         self.close_connection()
-        return f"Cars scraped {car_scraped}. Left to scrape {non_scraped_cars}.\nRs scraped {rs_scraped}. Left to scrape {non_scraped_rs}."
+        return f"Cars scraped {total_cars}. Left to scrape {non_scraped_cars}.\nRs scraped {total_rs}. Left to scrape {non_scraped_rs}."
