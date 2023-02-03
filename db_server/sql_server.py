@@ -562,3 +562,11 @@ class Server:
             total_rs = result[0][0]
         self.close_connection()
         return f"Cars scraped {total_cars}. Left to scrape {non_scraped_cars}.\nRs scraped {total_rs}. Left to scrape {non_scraped_rs}."
+
+    def get_cars_basic_info(self):
+        self.create_connection()
+        with self.connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM cars_basic_info;")
+            result = cursor.fetchall()
+        self.close_connection()
+        return result

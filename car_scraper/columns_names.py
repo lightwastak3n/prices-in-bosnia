@@ -23,7 +23,7 @@ specs_columns_mapping = {
 "Transmisija": "transmisija",
 "Broj stepeni prijenosa": "brzina",
 "Boja": "boja",
-"Muzika / ozvučenje": "ozvucenje",
+"Muzika/ozvučenje": "ozvucenje",
 "Parking senzori": "parking_senzori",
 "Parking kamera": "parking_kamera",
 "Registrovan do": "registrovan_do",

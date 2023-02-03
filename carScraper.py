@@ -45,7 +45,7 @@ class CarScraper:
         """
         self.main_page = self.get_soup(self.MAIN_URL)
     
-    def get_cars_from_main(self):
+    def get_cars_from_main(self):                           
         """
         Gets all the links found under div class: "naslov".
         Each link corressponds to a car.
@@ -53,7 +53,7 @@ class CarScraper:
         """
         self.get_main_page()
         listing_divs = self.main_page.findAll("div", {'class': 'naslov'})
-        for listing in listing_divs:
+        for listing in listing_divs:                                        
             link_tag = listing.find("a")
             try:
                 link = link_tag.get("href")
@@ -124,6 +124,9 @@ class CarScraper:
         elif "Cijena - Hitna prodaja [?]" in data:
             data["Cijena"] = data["Cijena - Hitna prodaja [?]"]
             del data["Cijena - Hitna prodaja [?]"]
+        elif "Hitna prodaja" in data:
+            data["Cijena"] = data["Hitna prodaja"]
+            del data["Hitna prodaja"]
         elif "Akcijska cijena - " in str(car_soup) and data.get('Cijena') == None:
             self.akcijska_cijena(car_soup, data)
             
