@@ -20,18 +20,18 @@ class Server:
         connection: connection used to comunicate with the database.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, configfile="config.json") -> None:
         """
         Initializes Server object and populates attributes by loading the from the .json file.
         """
-        self.load_config()
+        self.load_config(configfile)
         self.rs_mapping = {"Kuca": "houses", "Stan": "flats", "Zemljiste": "land"}
 
-    def load_config(self):
+    def load_config(self, configfile):
         """
         Loads MySQL config into object attributes.
         """
-        CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'config.json')
+        CONFIG_FILE = os.path.join(os.path.dirname(__file__), configfile)
         with open(CONFIG_FILE, 'r') as cnf:
             config = json.load(cnf)
         self.HOST = config['host']
@@ -68,12 +68,12 @@ class Server:
         """
         self.connection.close()
 
-    def create_database(self):
+    def create_database(self, db_name):
         """
         Creates database prices.
         """
         with self.connection.cursor() as cursor:
-            cursor.execute("CREATE DATABASE prices;")
+            cursor.execute(f"CREATE DATABASE {db_name};")
 
     def create_table_car_links(self):
         """

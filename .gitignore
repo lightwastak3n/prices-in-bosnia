@@ -4,3 +4,4 @@ __pycache__/
 config.json
 sql_dumps/
 logs/
+data.json
