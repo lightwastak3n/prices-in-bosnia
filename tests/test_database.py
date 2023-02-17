@@ -7,7 +7,7 @@ def connect_to_database():
     server = sql_server.Server()
     return server
 
-def test_create_dn():
+def test_create_db():
     server = connect_to_database()
     server.create_connection()
     server.create_database("test_database")
@@ -23,3 +23,5 @@ def test_create_dn():
 
     server.close_connection()
     assert "test_database" in dbs
+
+
