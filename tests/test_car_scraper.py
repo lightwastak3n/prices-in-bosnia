@@ -1,9 +1,10 @@
 import sys
 import json
 
+from bs4 import BeautifulSoup
+
 sys.path.append('../')
 from carScraper_v2 import CarScraper
-from bs4 import BeautifulSoup
 
 
 def get_main_page_data():
@@ -19,7 +20,7 @@ def test_get_cars_from_main():
 
     scraper = CarScraper()
     scraper.main_page = soup
-    scraper.get_cars_from_main(go_fetch=False)
+    scraper.get_cars_from_main(False)
     test_cars = get_main_page_data()
     assert scraper.cars == test_cars
 

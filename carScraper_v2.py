@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from db_server.sql_server import Server
 from utils.log_maker import write_log_info
 
+
 class CarScraper:
     """
     Car scraper object that scrapes the main page and checks for new cars and also scrapes individual cars.
@@ -46,17 +47,17 @@ class CarScraper:
         """
         self.main_page = self.get_soup(self.MAIN_URL)
     
-    def get_cars_from_main(self, go_fetch=True):                           
+    def get_cars_from_main(self, request_main_page=True):                           
         """
         Gets all the links found under div class: "naslov".
         Each link corressponds to a car.
         The links are stored in self.cars attribute.
         """
-        if go_fetch:
+        if request_main_page:
             self.get_main_page()
-        all_scripts = self.main_page.findAll('script')
+        all_scripts = self.main_page.findAll("script")
         for script in all_scripts:
-            if script.contents and 'window.__NUXT__' in script.contents[0][:50]:
+            if script.contents and "window.__NUXT__" in script.contents[0][:50]:
                 target_script = script.contents[0]
                 break
         match = re.search(r"results:\s*\[[^[\]]*(?:\[[^[\]]*\][^[\]]*)*\](?=,?\s*attributes)", target_script, re.DOTALL)
