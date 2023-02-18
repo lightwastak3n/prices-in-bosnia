@@ -1,4 +1,5 @@
 import requests
+import re
 
 from datetime import date
 from bs4 import BeautifulSoup
@@ -45,26 +46,25 @@ class CarScraper:
         """
         self.main_page = self.get_soup(self.MAIN_URL)
     
-    def get_cars_from_main(self, main_page_fetched=False):                           
+    def get_cars_from_main(self, go_fetch=True):                           
         """
         Gets all the links found under div class: "naslov".
         Each link corressponds to a car.
         The links are stored in self.cars attribute.
         """
-        if not main_page_fetched:
-            self.get_main_page()  
-        listings = self.main_page.select('a[href*="artikal"]')
-        for listing in listings:
-            try:
-                link_loc = listing["href"]
-                link = f"https://olx.ba{link_loc}"                                 
-                car_id = link_loc.split("/")[-2]
-                self.cars[car_id] = link
-            except AttributeError:
-                print("Link not found. Empty listing bar.")
-            except Exception as e:
-                print(f"Unexpected error - {e}")
-        
+        if go_fetch:
+            self.get_main_page()
+        all_scripts = self.main_page.findAll('script')
+        for script in all_scripts:
+            if script.contents and 'window.__NUXT__' in script.contents[0][:50]:
+                target_script = script.contents[0]
+                break
+        match = re.search(r"results:\s*\[[^[\]]*(?:\[[^[\]]*\][^[\]]*)*\](?=,?\s*attributes)", target_script, re.DOTALL)
+        results = match.group(0)
+        car_ids = re.findall(r'(?<=,id:)\d+,', results)
+        for id in car_ids:
+            self.cars[id[:-1]] = f"https://olx.ba/artikal/{id[:-1]}/"
+
     def filter_new_cars(self) -> int:
         """
         Checks id of each car found against the ids already present in the database.
