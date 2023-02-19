@@ -319,12 +319,12 @@ class Server:
                             broj_pregleda INT,
                             FOREIGN KEY(id) REFERENCES rs_links(id));''')
 
-    def database_setup(self):
+    def database_setup(self, close_on_finish=True):
         """
-        Create database and car tables.
+        Setup all the tables.
         """
-        self.create_connection()
-        self.create_database()
+        if not self.connection:
+            self.create_connection()
 
         self.create_table_car_links()
         self.create_table_cars()
@@ -334,7 +334,8 @@ class Server:
         self.create_table_flats()
         self.create_table_land()
         
-        self.close_connection()
+        if close_on_finish:
+            self.close_connection()
 
     def item_in_db(self, table, car_id):
         """
