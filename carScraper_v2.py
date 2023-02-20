@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 
 from db_server.sql_server import Server
 from utils.log_maker import write_log_info
+from car_scraper.columns_names import specs_columns_mapping
 
 
 class CarScraper:
@@ -14,7 +15,7 @@ class CarScraper:
 
     Attributes:
             MAIN_URL: Url of the default location where vehicles are published.
-            main_page: Stores raw html the MAIN_URL
+            main_page: Stores raw html of the MAIN_URL
             cars: Dictionary that stores id: link of the cars found on main page.
     """
     def __init__(self) -> None:
@@ -97,6 +98,72 @@ class CarScraper:
         price = price_p.text.split("KM")[1]
         data["Cijena"] = price
 
+    def get_car_specs_v2(self, car_soup, car_id):
+        """
+        Gets all the specs it can found on a given car page.
+        Name is found manually as h2 tag. Everything else shares the same tag so it can be done in a loop.
+        There are also some fixes for the price.
+
+        Args:
+            car_soup: soup object (like a raw html) generated from the cars webpage
+            car_id: id of the car found
+        """
+        name = car_soup.find("h2")
+        name = name.text.strip()
+        data = {"id": car_id, "Ime": name, "datum": f"{date.today()}"}
+
+        boolean_properties = [
+            "Metalik",
+            "Turbo",
+            "Start-Stop sistem",
+            "DPF/FAP filter",
+            "Park assist",
+            "Strane tablice",
+            "Registrovan",
+            "Ocarinjen",
+            "Na lizingu",
+            "Prilagođen invalidima",
+            "Servisna knjiga",
+            "Servo volan",
+            "Komande na volanu",
+            "Tempomat",
+            "ABS",
+            "ESP",
+            "Airbag",
+            "El. podizači stakala",
+            "Električni retrovizori",
+            "Senzor mrtvog ugla",
+            "Klima",
+            "Digitalna klima",
+            "Navigacija",
+            "Touch screen (ekran)",
+            "Šiber",
+            "Panorama krov",
+            "Naslon za ruku",
+            "Koža",
+            "Hlađenje sjedišta",
+            "Masaža sjedišta",
+            "Grijanje sjedišta",
+            "El. pomjeranje sjedišta",
+            "Memorija sjedišta",
+            "Senzor auto. svjetla",
+            "Alu felge",
+            "Alarm",
+            "Centralna brava",
+            "Daljinsko otključavanje",
+            "Oldtimer",
+            "Auto kuka",
+            "ISOFIX",
+            "Udaren",
+        ]
+        text_soup = car_soup.get_text()
+        for prop in boolean_properties:
+            if prop in text_soup:
+                data[prop] = 1
+
+        return data
+
+
     def get_car_specs(self, car_soup, car_id):
         """
         Gets all the specs it can found on a given car page.
@@ -107,7 +174,7 @@ class CarScraper:
             car_soup: soup object (like a raw html) generated from the cars webpage
             car_id: id of the car found
         """
-        name = car_soup.find("h1")
+        name = car_soup.find("h2")
         name = name.text.strip()
         data = {"id": car_id, "Ime": name, "datum": f"{date.today()}"}
 
@@ -145,7 +212,8 @@ class CarScraper:
             key = key.text.strip()
             if key not in data:
                 data[key] = value
-        del data["OLX ID"]
+        if "OLX ID" in data:
+            del data["OLX ID"]
         return data
 
     def scrape_car(self, car_id, car_link) -> dict:

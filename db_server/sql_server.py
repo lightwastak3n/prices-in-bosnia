@@ -333,7 +333,7 @@ class Server:
         self.create_table_houses()
         self.create_table_flats()
         self.create_table_land()
-        
+
         if close_on_finish:
             self.close_connection()
 

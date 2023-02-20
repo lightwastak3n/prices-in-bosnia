@@ -6,7 +6,6 @@ class Car:
 
     Attributes:
         data: Properties of a car that are found on its webpage.
-    
     """
     def __init__(self, data):
         """
@@ -75,7 +74,7 @@ class Car:
         """
         if 'prva_registracija' in self.data and self.data['prva_registracija'] == "Starije":
             del self.data['prva_registracija']
-        if 'prethodnih_vlasnika' in self.data and  self.data['prethodnih_vlasnika'] == "Ostalo":
+        if 'prethodnih_vlasnika' in self.data and self.data['prethodnih_vlasnika'] == "Ostalo":
             del self.data['prethodnih_vlasnika']
 
     def fix_radio_columns(self):
