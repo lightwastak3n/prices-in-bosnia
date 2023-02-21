@@ -156,10 +156,17 @@ class CarScraper:
             "ISOFIX",
             "Udaren",
         ]
-        text_soup = car_soup.get_text()
-        for prop in boolean_properties:
-            if prop in text_soup:
-                data[prop] = 1
+        # Find the script tag that contains all the data about the car
+        all_scripts = car_soup.findAll("script")
+        for script in all_scripts:
+            if script.contents and "window.__NUXT__" in script.contents[0][:50]:
+                target_script = script.contents[0]
+                break
+        # Extract section with all the data
+        match = re.search(r"data:\s*\[[^[\]]*(?:\[[^[\]]*\][^[\]]*)*\](?=,?\s*fetch)", target_script, re.DOTALL)
+        results = match.group(0)
+        match2 = re.search(r"attributes:(.*?)(?=model_id:)", results, re.DOTALL)
+        attr = match2.group(0)
 
         return data
 
