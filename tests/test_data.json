@@ -47,11 +47,11 @@
         "cijena": 24999,
         "stanje": "Korišteno",
         "lokacija": "Visoko",
-        "obnovljen": "Prije 3 min",
+        "obnovljen": "prije 3 sata",
         "proizvodjac": "Volkswagen",
         "model": "Tiguan",
         "godiste": 2012,
-        "kilometraza": 235000,
+        "kilometraza": 231000,
         "kilovata": 103,
         "kubikaza": 2.0,
         "gorivo": "Dizel",
@@ -120,8 +120,6 @@
         "isofix": 1,
         "udaren": "None",
         "vrsta_oglasa": "Prodaja",
-        "datum_objave": "15.02.2023. u 05:13",
-        "broj_pregleda": 3,
         "radnja": 1,
         "datum": "2023-02-15"
     }
