@@ -37,7 +37,7 @@ def test_get_cars_from_main():
 
 
 def test_car_scrape():
-    with open('car1_backup.html', 'r', encoding='utf-8') as car:
+    with open('car1.html', 'r', encoding='utf-8') as car:
         car_page = car.read()
     car_soup = BeautifulSoup(car_page, 'html.parser')
 
@@ -45,7 +45,7 @@ def test_car_scrape():
 
     scraper = CarScraper()
     car_id = 51829903
-    car_data = scraper.get_car_specs_v2(car_soup, car_id)
+    car_data = scraper.get_car_specs(car_soup, car_id)
     new_car = Car(car_data)
 
     # Fix so that it doesnt use todays date

@@ -2,12 +2,13 @@ import re
 import json
 import sys
 from bs4 import BeautifulSoup
+from datetime import datetime, date
 
 sys.path.append('../')
 
 from carScraper_v2 import CarScraper
 
-car_soup = BeautifulSoup(open("car1_backup.html", "r", encoding="utf-8"), "html.parser")
+car_soup = BeautifulSoup(open("car1.html", "r", encoding="utf-8"), "html.parser")
 car_id = 51829903
 name = "VW TIGUAN 4MOTION 2.0 TDI 2012 god."
 
@@ -54,12 +55,25 @@ def get_car_data(car_soup):
     data['Lokacija'] = location
     data['Stanje'] = condition
     data 
-    print(labels[2])
+
     
     # We are only scraping sell ads
     data["Vrsta oglasa"] = "Prodaja"
 
+    # Get the type of seller
+    seller_p = car_soup.find('p', {'class': 'user-info__title pb-md'})
+    shop = 1 if seller_p.get_text().strip() == "OLX shop" else 0
+    data['radnja'] = shop
+
+    pattern_date = r'date:(\d+)'
+    dates = re.findall(pattern_date, str(car_soup))
+    # Convert epoch to yyyy-mm-dd
+    date_ob = datetime.fromtimestamp(int(dates[0]))
+    date_str = date_ob.strftime('%Y-%m-%d')
+    data['Datum objave'] = date_str
+
     return data
 
 data = get_car_data(car_soup)
+
 print(data)

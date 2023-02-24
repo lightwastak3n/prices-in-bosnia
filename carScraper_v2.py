@@ -1,7 +1,7 @@
 import requests
 import re
 
-from datetime import date
+from datetime import datetime, date
 from bs4 import BeautifulSoup
 
 from db_server.sql_server import Server
@@ -98,15 +98,18 @@ class CarScraper:
         price = price_p.text.split("KM")[1]
         data["Cijena"] = price
 
-    def get_car_specs_v2(self, car_soup, car_id):
+    def get_car_specs(self, car_soup, car_id):
         """
         Gets all the specs it can found on a given car page.
-        Name is found manually as h2 tag. Everything else shares the same tag so it can be done in a loop.
-        There are also some fixes for the price.
+        Name is found manually as h2 tag.
+        Most of the data is found via table. Some is found via labels.
+        The rest is found using class lookup in bs4 and regex.
 
         Args:
             car_soup: soup object (like a raw html) generated from the cars webpage
             car_id: id of the car found
+        Returns:
+            data: dictionary with found car data
         """
         name = car_soup.find("h2")
         name = name.text.strip()
@@ -115,26 +118,7 @@ class CarScraper:
         price_span = car_soup.find("span", {"class": "price-heading vat"})
         data["Cijena"] = price_span.text
 
-        # pattern = r'value:(("[^"]*")|(c)),name:"([^"]*)"'
-        # More general
-        pattern = r'value:([^,]*),name:"([^"]*)"'
-
-        # Extract all the name and value pairs from the string
-        matches = re.findall(pattern, str(car_soup))
-
-        # Create a dictionary with values and names
-        for value, name in matches:
-            value = value.strip('"')
-            name = name.strip('"')
-            if value == "c":
-                value = 1
-            elif "\\u002F" in value:
-                value = value.replace("\\u002F", "/")
-            if "\\u002F" in name:
-                name = name.replace("\\u002F", "/")
-            # data[name] = value
-
-        # Trying a different approach
+        # Extracting table data
         rows = car_soup.find_all('tr', {'data-v-fffe36e4': ''})
         for row in rows:
             name = row.find_all('td')[0].get_text().strip()
@@ -143,7 +127,7 @@ class CarScraper:
                 value = 1
             data[name] = value
     
-        # Get the location, condition, relative time of ad renewal
+        # Get the location, condition and relative time of ad renewal
         labels = car_soup.find_all('label', {'class': 'btn-pill'})
         data['Lokacija'] = labels[0].get_text().strip()
         data['Stanje'] = labels[1].get_text().strip()
@@ -152,63 +136,23 @@ class CarScraper:
         # We are only scraping sell ads
         data["Vrsta oglasa"] = "Prodaja"
 
-        return data
+        # Get the type of seller
+        seller_p = car_soup.find('p', {'class': 'user-info__title pb-md'})
+        shop = 1 if seller_p.get_text().strip() == "OLX shop" else 0
+        data['radnja'] = shop
 
-    def get_car_specs(self, car_soup, car_id):
-        """
-        Gets all the specs it can found on a given car page.
-        Name is found manually as h1 tag. Everything else shares the same tag so it can be done in a loop.
-        There are also some fixes for the price.
+        # Listing date. It's in epoch time so needs to be converted.
+        pattern_date = r'date:(\d+)'
+        dates = re.findall(pattern_date, str(car_soup))
+        date_ob = datetime.fromtimestamp(int(dates[0]))
+        date_str = date_ob.strftime('%Y-%m-%d')
+        data['Datum objave'] = date_str
 
-        Args:
-            car_soup: soup object (like a raw html) generated from the cars webpage
-            car_id: id of the car found
-        """
-        name = car_soup.find("h2")
-        name = name.text.strip()
-        data = {"id": car_id, "Ime": name, "datum": f"{date.today()}"}
-
-        # Checking if its a shop
-        data['radnja'] = 1 if car_soup.findAll("div", {"class": "povjerenje_mmradnja"}) else 0
-
-        basic_info = car_soup.findAll("p", {"class": "n"})
-        for i in basic_info:
-            key = i.text.strip()
-            value_p = i.find_next_sibling("p")
-            value = value_p.text.strip()
-            data[key] = value
-        # Fix for cijena shenanigans
-        if "Cijena bez PDV-a" in data:
-            del data["Cijena bez PDV-a"]
-        elif "Cijena - Hitna prodaja [?]" in data:
-            data["Cijena"] = data["Cijena - Hitna prodaja [?]"]
-            del data["Cijena - Hitna prodaja [?]"]
-        elif "Hitna prodaja" in data:
-            data["Cijena"] = data["Hitna prodaja"]
-            del data["Hitna prodaja"]
-        elif "Akcijska cijena - " in str(car_soup) and data.get('Cijena') == None:
-            self.akcijska_cijena(car_soup, data)
-            
-        if "Cijena" in data and data["Cijena"] == "Po dogovoru":
-            data["Cijena"] = "0"
-
-        # Extra info
-        extra_keys = car_soup.findAll("div", {"class": "df1"})
-        for key in extra_keys:
-            value = key.find_next_sibling("div")
-            value = value.text.strip()
-            if not value:
-                value = 1
-            key = key.text.strip()
-            if key not in data:
-                data[key] = value
-        if "OLX ID" in data:
-            del data["OLX ID"]
         return data
 
     def scrape_car(self, car_id, car_link) -> dict:
         """
-        Scrapes individual car.
+        Scrapes individual car. Skipps if the car is already deleted from the website (empty webpage).
 
         Args:
             car_id: id of a given car.
