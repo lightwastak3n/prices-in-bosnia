@@ -18,6 +18,7 @@ def get_car_data(car_soup):
     name = name.text.strip()
     data = {"id": car_id, "Ime": name, "datum": "2023-02-15"}
 
+
     price_span = car_soup.find("span", {"class": "price-heading vat"})
     data["Cijena"] = price_span.text
 
@@ -48,15 +49,17 @@ def get_car_data(car_soup):
             value = 1
         data[name] = value
 
+
     # Get the location, condition, time the ad was renewed
     labels = car_soup.find_all('label', {'class': 'btn-pill'})
-    location = labels[0].get_text().strip()
-    condition = labels[1].get_text().strip()
-    data['Lokacija'] = location
-    data['Stanje'] = condition
-    data 
-
-    
+    label_mapping = {"M17": "Lokacija", "M7": "Stanje", "M12": "Obnovljen"}
+    print("M17" in str(labels[0]))
+    for label in labels:
+        for key in label_mapping:
+            if key in str(label):
+                data[label_mapping[key]] = label.get_text().strip()
+                print("Got it")
+    print(data)
     # We are only scraping sell ads
     data["Vrsta oglasa"] = "Prodaja"
 
@@ -75,5 +78,3 @@ def get_car_data(car_soup):
     return data
 
 data = get_car_data(car_soup)
-
-print(data)

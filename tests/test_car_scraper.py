@@ -17,7 +17,7 @@ def get_main_page_data():
 def get_car_data(car):
     with open("test_data.json", "r", encoding="utf-8") as f:
         data = json.load(f)
-    car_data = data["car1"]
+    car_data = data[car]
     for prop in list(car_data):
         if car_data[prop] == "None":
             del car_data[prop]
@@ -37,25 +37,25 @@ def test_get_cars_from_main():
 
 
 def test_car_scrape():
-    with open('car1.html', 'r', encoding='utf-8') as car:
-        car_page = car.read()
-    car_soup = BeautifulSoup(car_page, 'html.parser')
+    for car in ["car1", "car2"]:
+        with open(f"{car}.html", 'r', encoding='utf-8') as car_html:
+            car_page = car_html.read()
+        car_soup = BeautifulSoup(car_page, 'html.parser')
 
-    test_car_data = get_car_data("car1")
+        test_car_data = get_car_data(car)
 
-    scraper = CarScraper()
-    car_id = 51829903
-    car_data = scraper.get_car_specs(car_soup, car_id)
-    new_car = Car(car_data)
+        scraper = CarScraper()
+        car_id = test_car_data["id"]
+        
 
-    # Fix so that it doesnt use todays date
-    new_car.data["datum"] = "2023-02-15"
+        car_data = scraper.get_car_specs(car_soup, car_id)
+        new_car = Car(car_data)
 
-    # Fix for test data since we are comparing them against
-    for name in new_car.data:
-        if isinstance(new_car.data[name], str) and new_car.data[name].isdigit():
-            new_car.data[name] = int(new_car.data[name])
+        # Fix for date since scraper automatically uses todays date
+        new_car.data["datum"] = test_car_data["datum"]
 
-    print(new_car.data)
-    print(test_car_data)
-    assert new_car.data == test_car_data
+        # Fix for test data since we are comparing them against
+        for name in new_car.data:
+            if isinstance(new_car.data[name], str) and new_car.data[name].isdigit():
+                new_car.data[name] = int(new_car.data[name])
+        assert new_car.data == test_car_data
