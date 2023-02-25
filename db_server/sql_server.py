@@ -319,12 +319,11 @@ class Server:
                             broj_pregleda INT,
                             FOREIGN KEY(id) REFERENCES rs_links(id));''')
 
-    def database_setup(self, close_on_finish=True):
+    def database_setup(self):
         """
         Setup all the tables.
         """
-        if not self.connection:
-            self.create_connection()
+        self.create_connection()
 
         self.create_table_car_links()
         self.create_table_cars()
@@ -334,8 +333,7 @@ class Server:
         self.create_table_flats()
         self.create_table_land()
 
-        if close_on_finish:
-            self.close_connection()
+        self.close_connection()
 
     def item_in_db(self, table, car_id):
         """
@@ -347,6 +345,7 @@ class Server:
         Returns:
             bool: True if the car is in database already. False otherwise.
         """
+        # TODO: make this so that it can batch check multiple cars
         self.create_connection()
         with self.connection.cursor() as cursor:
             cursor.execute(f"SELECT id FROM {table} WHERE id='{car_id}'")
@@ -393,6 +392,7 @@ class Server:
             link: link of the car listing
             scraped: 0 since it is the new car and hasnt been scraped yet
         """
+        # TODO: make this so that it can batch add multiple cars
         self.create_connection()
         with self.connection.cursor() as cursor:
             cursor.execute(f"INSERT INTO links_cars VALUES(%s, %s, %s);",

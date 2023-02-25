@@ -1,4 +1,5 @@
 import sys
+import json
 import pytest
 
 sys.path.append('../')
@@ -6,54 +7,74 @@ from db_server import sql_server
 
 
 @pytest.fixture(scope='session')
-def db_connection():
+def get_server():
     server = sql_server.Server()
     server.DATABASE = "test_database"
-    server.create_connection()
     yield server
-    server.close_connection()
+    server.connection.close()
 
 
-def delete_tables(db_connection):
-    if db_connection.DATABASE == "test_database":
-        with db_connection.connection.cursor() as cursor:
+def delete_tables(get_server):
+    get_server.create_connection()
+    if get_server.DATABASE == "test_database":
+        with get_server.connection.cursor() as cursor:
             cursor.execute("DROP TABLE cars;")
             cursor.execute("DROP TABLE links_cars;")
             cursor.execute("DROP TABLE land;")
             cursor.execute("DROP TABLE flats;")
             cursor.execute("DROP TABLE houses;")
             cursor.execute("DROP TABLE rs_links;")
+    get_server.connection.close()
 
 
-def test_connecting_to_server(db_connection):
-    with db_connection.connection.cursor() as cursor:
+def test_connecting_to_server(get_server):
+    get_server.create_connection()
+    with get_server.connection.cursor() as cursor:
         cursor.execute("SHOW DATABASES;")
         result = cursor.fetchall()
         dbs = []
         for item in result:
             dbs.append(item[0])
+    get_server.connection.close()
     assert "test_database" in dbs
 
 
-def test_tables_in_db(db_connection):
-    db_connection.database_setup(close_on_finish=False)
-    with db_connection.connection.cursor() as cursor:
+def test_tables_in_db(get_server):
+    get_server.database_setup()
+    get_server.create_connection()
+    with get_server.connection.cursor() as cursor:
         cursor.execute("SHOW TABLES;")
         result = cursor.fetchall()
         tables = []
         for item in result:
             tables.append(item[0])
     test_tables = ["links_cars", "cars", "rs_links", "land", "flats", "houses"]
+    get_server.connection.close()
     assert all([table in tables for table in test_tables]) == True
 
 
+def test_filter_cars(get_server):
+    with open("test_data.json", 'r') as f:
+        data = json.load(f)
+    new_cars = data['cars']
+    get_server.create_connection()
+
+    
+
 def test_delete_tables(db_connection):
     delete_tables(db_connection)
+    get_server.create_connection()
     with db_connection.connection.cursor() as cursor:
         cursor.execute("SHOW TABLES;")
         result = cursor.fetchall()
         tables = []
         for item in result:
             tables.append(item[0])
+    get_server.connection.close()
     assert tables == []
 
+
+
+
+
+test_filter_cars("aa")

@@ -3,7 +3,7 @@ import requests
 from random import randint
 from time import sleep
 
-from carScraper import CarScraper
+from carScraper_v2 import CarScraper
 from car_scraper.car import Car
 from db_server.sql_server import Server
 from utils.log_maker import write_log_error

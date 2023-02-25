@@ -6,7 +6,6 @@ from bs4 import BeautifulSoup
 
 from db_server.sql_server import Server
 from utils.log_maker import write_log_info
-from car_scraper.columns_names import specs_columns_mapping
 
 
 class CarScraper:
@@ -128,14 +127,14 @@ class CarScraper:
             data[name] = value
     
         # Get the location, condition and relative time of ad renewal
-        # Needs a fix since sometimes cars don't have all the labels
         labels = car_soup.find_all('label', {'class': 'btn-pill'})
+        # Mapping since not all cars have all the labels
         label_mapping = {"M17": "Lokacija", "M7": "Stanje", "M12": "Obnovljen"}
         for label in labels:
             for key in label_mapping:
                 if key in str(label):
+                    # Fix for Obnovljen label included
                     data[label_mapping[key]] = label.get_text().strip().replace("Obnovljen:\n", "")
-
 
         # We are only scraping sell ads
         data["Vrsta oglasa"] = "Prodaja"
@@ -145,7 +144,7 @@ class CarScraper:
         shop = 1 if seller_p.get_text().strip() == "OLX shop" else 0
         data['radnja'] = shop
 
-        # Listing date. It's in epoch time so needs to be converted.
+        # Listing date. It's in epoch time so it needs to be converted.
         pattern_date = r'date:(\d+)'
         dates = re.findall(pattern_date, str(car_soup))
         date_ob = datetime.fromtimestamp(int(dates[0]))
