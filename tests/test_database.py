@@ -1,8 +1,11 @@
 import sys
+import os
 import json
 import pytest
 
-sys.path.append('../')
+# parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+# sys.path.append(parent_dir)
+
 from db_server import sql_server
 
 
@@ -53,18 +56,18 @@ def test_tables_in_db(get_server):
     assert all([table in tables for table in test_tables]) == True
 
 
-def test_filter_cars(get_server):
-    with open("test_data.json", 'r') as f:
-        data = json.load(f)
-    new_cars = data['cars']
-    get_server.create_connection()
+# def test_filter_cars(get_server):
+#     with open("test_data.json", 'r') as f:
+#         data = json.load(f)
+#     new_cars = data['cars']
+#     get_server.create_connection()
 
     
 
-def test_delete_tables(db_connection):
-    delete_tables(db_connection)
+def test_delete_tables(get_server):
+    delete_tables(get_server)
     get_server.create_connection()
-    with db_connection.connection.cursor() as cursor:
+    with get_server.connection.cursor() as cursor:
         cursor.execute("SHOW TABLES;")
         result = cursor.fetchall()
         tables = []
@@ -72,9 +75,3 @@ def test_delete_tables(db_connection):
             tables.append(item[0])
     get_server.connection.close()
     assert tables == []
-
-
-
-
-
-test_filter_cars("aa")
