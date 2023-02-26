@@ -1,12 +1,11 @@
 import requests
+import re
 
 from time import sleep
 from random import randint
 from datetime import date
 from bs4 import BeautifulSoup
 
-from db_server.sql_server import Server
-from utils.log_maker import write_log_info
 
 class RealEstateScraper:
     """
@@ -37,7 +36,7 @@ class RealEstateScraper:
         Returns:
             Returns raw html.
         """
-        headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36'}
+        headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36', 'Referer': 'https://google.com/'}
         response = requests.get(url, headers=headers)
         content = response.content
         soup = BeautifulSoup(content, 'html.parser')
@@ -53,45 +52,43 @@ class RealEstateScraper:
         sleep(randint(5,10))
         self.main_pages["Zemljiste"] = self.get_soup(self.ZEMLJISTA_URL)
     
-    def get_real_estates_from_main(self):
+    def get_real_estates_from_main(self, get_main_pages=True):
         """
-        Gets all the links found under div class: "naslov".
-        Each link corressponds to a real estate.
-        The links are stored in self.real_estate attribute.
+        New olx update so it uses regex insted of bs4 to get the ids.
+        Gets all the ids found in __NUXT__ function return.
         """
-        self.get_main_pages()
+        if get_main_pages:
+            self.get_main_pages()
         for type in self.main_pages:
             soup = self.main_pages[type]
 
-            listing_divs = soup.findAll("div", {'class': 'naslov'})
-            for listing in listing_divs:
-                link_tag = listing.find("a")
-                try:
-                    link = link_tag.get("href")
-                    rs_id = link.split("/")[4]
-                    self.real_estates[type][rs_id] = link
-                except AttributeError:
-                    print("Link not found. Empty listing bar.")
-                except Exception as e:
-                    print(f"Unexpected error - {e}")
+            all_scripts = soup.findAll("script")
+            for script in all_scripts:
+                if script.contents and "window.__NUXT__" in script.contents[0][:50]:
+                    target_script = script.contents[0]
+                    break
+            match = re.search(r"results:\s*\[[^[\]]*(?:\[[^[\]]*\][^[\]]*)*\](?=,?\s*attributes)", target_script, re.DOTALL)
+            results = match.group(0)
+            listings_ids = re.findall(r'(?<=,id:)\d+,', results)
+            for id in listings_ids:
+                self.real_estates[type][id[:-1]] = f"https://olx.ba/artikal/{id[:-1]}/"
 
-    def filter_new_real_estates(self) -> int:
+    def filter_new_real_estates(self, server) -> int:
         """
         Checks id of each real estate found against the ids already present in the database.
 
         Returns:
             Total number of new real estate found.
         """
-        server = Server()
-        server.create_connection()
-        total = 0
-        for type in self.real_estates:
-            for id, link in self.real_estates[type].items():
-                if not server.item_in_db("rs_links", id):
-                    server.add_rs_link(id, link, type, 0)
-                    total += 1
-        server.close_connection()
-        return total
+        house_ids = list(self.real_estates['Kuca'].keys())
+        flat_ids = list(self.real_estates['Stan'].keys())
+        land_ids = list(self.real_estates['Zemljiste'].keys())
+
+        new_houses = server.items_not_in_db(server, house_ids)
+        new_flats = server.items_not_in_db(server, flat_ids)
+        new_lands = server.items_not_in_db(server, land_ids)
+
+        return new_houses, new_flats, new_lands
 
     def akcijska_cijena(self, rs_soup, data):
         """

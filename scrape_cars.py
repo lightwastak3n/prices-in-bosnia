@@ -23,11 +23,10 @@ while True:
         car_scraper.get_cars_from_main()
         new_ids = car_scraper.filter_new_cars(server)
         new_found = len(new_ids)
-        print(new_ids)
 
         # Make [id, link, 0] list to add to the server
-        new_ids = [[car_id, car_scraper.cars[car_id], 0] for car_id in new_ids]
-        server.add_car_links(new_ids, write_log_info)
+        add_ids = [[car_id, car_scraper.cars[car_id], 0] for car_id in new_ids]
+        server.add_car_links(add_ids, write_log_info)
         
         not_scraped = server.get_non_scraped_cars()
         total_not_scraped = len(not_scraped)

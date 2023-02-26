@@ -334,7 +334,7 @@ class Server:
 
         self.close_connection()
 
-    def item_in_db(self, table, car_id):
+    def item_in_db(self, table, item_id):
         """
         Checks if a car is in database.
 
@@ -346,7 +346,7 @@ class Server:
         """
         self.create_connection()
         with self.connection.cursor() as cursor:
-            cursor.execute(f"SELECT id FROM {table} WHERE id='{car_id}'")
+            cursor.execute(f"SELECT id FROM {table} WHERE id='{item_id}'")
             result = cursor.fetchone()
         self.close_connection()
         if result:
@@ -455,6 +455,24 @@ class Server:
         write_log_info(f"{rs_id} - {rs_link} added to the database.")
         print(f"{rs_id} - {rs_link} added to the database.")
 
+    def add_rs_links(self, rs, write_log_info):
+        """
+        Adds multiple new res to the rs_links table.
+
+        Args:
+            cars: list of lists that has car_id, link, scraped
+        """
+        self.create_connection()
+        with self.connection.cursor() as cursor:
+            for rs_id, rs_link, type, scraped in rs:
+                cursor.execute(f"INSERT INTO rs_links VALUES(%s, %s, %s, %s);",
+                            (rs_id, rs_link, type, scraped))
+                write_log_info(f"{rs_id} - {rs_link} added to the database.")
+                print(f"{rs_id} - {rs_link} added to the database.")
+        self.connection.commit()
+        self.close_connection()
+
+
     def get_missing_seller_cars(self):
         """
         Finds and returns cars that don't have seller type info (shop or individual.)
@@ -473,14 +491,14 @@ class Server:
         self.close_connection()
         return result
 
-    def mark_as_scraped(self, table, car_id):
+    def mark_as_scraped(self, table, item_id):
         """
         Updates the status of a given id from scraped=0 to scraped=1.
         """
         self.create_connection()
         with self.connection.cursor() as cursor:
             cursor.execute(
-                f"UPDATE {table} SET scraped=1 WHERE id={car_id};")
+                f"UPDATE {table} SET scraped=1 WHERE id={item_id};")
             self.connection.commit()
         self.close_connection()
 

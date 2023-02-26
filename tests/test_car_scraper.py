@@ -4,11 +4,9 @@ import json
 
 from bs4 import BeautifulSoup
 
-# parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-# sys.path.append(parent_dir)
-
 from car_scraper.carScraper_v2 import CarScraper
 from car_scraper.car import Car
+
 
 
 def get_main_page_data():
@@ -27,8 +25,8 @@ def get_car_data(car):
     return car_data
 
 
-def test_get_cars_from_main():    
-    with open('car_listing_page.html', 'r', encoding='utf-8') as mcp:
+def test_get_cars_from_main():
+    with open('htmls/car_listing_page.html', 'r', encoding='utf-8') as mcp:
         main_car_page = mcp.read()
     soup = BeautifulSoup(main_car_page, 'html.parser')
 
@@ -41,7 +39,7 @@ def test_get_cars_from_main():
 
 def test_car_scrape():
     for car in ["car1", "car2"]:
-        with open(f"{car}.html", 'r', encoding='utf-8') as car_html:
+        with open(f"htmls/{car}.html", 'r', encoding='utf-8') as car_html:
             car_page = car_html.read()
         car_soup = BeautifulSoup(car_page, 'html.parser')
 
