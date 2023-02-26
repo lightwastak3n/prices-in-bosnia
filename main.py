@@ -4,9 +4,9 @@ from random import randint
 from time import sleep
 from threading import Thread
 
-from carScraper import CarScraper
+from car_scraper.carScraper import CarScraper
 from car_scraper.car import Car
-from rsScraper import RealEstateScraper
+from real_estate_scraper.rsScraper import RealEstateScraper
 from real_estate_scraper.real_estate import RealEstate
 from db_server.sql_server import Server
 from utils.log_maker import write_log_error

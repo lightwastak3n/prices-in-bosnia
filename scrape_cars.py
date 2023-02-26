@@ -3,10 +3,10 @@ import requests
 from random import randint
 from time import sleep
 
-from carScraper_v2 import CarScraper
+from car_scraper.carScraper_v2 import CarScraper
 from car_scraper.car import Car
 from db_server.sql_server import Server
-from utils.log_maker import write_log_error
+from utils.log_maker import write_log_error, write_log_info
 
 
 def send_ntfy(msg):
@@ -21,8 +21,14 @@ car_scraper = CarScraper()
 while True:
     try:
         car_scraper.get_cars_from_main()
-        new_found = car_scraper.filter_new_cars()
+        new_ids = car_scraper.filter_new_cars(server)
+        new_found = len(new_ids)
+        print(new_ids)
 
+        # Make [id, link, 0] list to add to the server
+        new_ids = [[car_id, car_scraper.cars[car_id], 0] for car_id in new_ids]
+        server.add_car_links(new_ids, write_log_info)
+        
         not_scraped = server.get_non_scraped_cars()
         total_not_scraped = len(not_scraped)
 
@@ -45,10 +51,10 @@ while True:
             car_id = car[0]
             car_link = car[1]
             print(f"Scraping {car_link}.")
-            data = car_scraper.scrape_car(car_id, car_link)
+            data = car_scraper.scrape_car(car_id, car_link, write_log_info)
             if data:
                 new_car = Car(data)
-                server.insert_car_data(new_car.data)
+                server.insert_car_data(new_car.data, write_log_info, write_log_error)
             server.mark_as_scraped("links_cars", car_id)
             sleep(pause_between_cars)
         print(f"Cars scraped. Waiting for {time_left} seconds.")

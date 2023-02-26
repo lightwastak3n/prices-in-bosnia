@@ -3,7 +3,6 @@ import json
 import os
 
 from mysql.connector import Error
-from utils.log_maker import write_log_info, write_log_error
 
 class Server:
     """
@@ -345,7 +344,6 @@ class Server:
         Returns:
             bool: True if the car is in database already. False otherwise.
         """
-        # TODO: make this so that it can batch check multiple cars
         self.create_connection()
         with self.connection.cursor() as cursor:
             cursor.execute(f"SELECT id FROM {table} WHERE id='{car_id}'")
@@ -354,6 +352,27 @@ class Server:
         if result:
             return True
         return False
+    
+    def items_not_in_db(self, table, ids_list):
+        """
+        Checks which ids from a list are in a table.
+
+        Args:
+            ids_list: list of ids to check
+
+        Returns:
+            list: list of ids that are not in the table
+        """
+        self.create_connection()
+        new_ids = []
+        with self.connection.cursor() as cursor:
+            for id in ids_list:
+                cursor.execute(f"SELECT id FROM {table} WHERE id='{id}'")
+                result = cursor.fetchone()
+                if not result:
+                    new_ids.append(id)
+        self.close_connection()
+        return new_ids
 
     def get_non_scraped_cars(self):
         """
@@ -383,7 +402,7 @@ class Server:
         self.close_connection()
         return result
 
-    def add_car_link(self, car_id, link, scraped):
+    def add_car_link(self, car_id, link, scraped, write_log_info):
         """
         Adds new cars to the links_cars table.
 
@@ -392,7 +411,6 @@ class Server:
             link: link of the car listing
             scraped: 0 since it is the new car and hasnt been scraped yet
         """
-        # TODO: make this so that it can batch add multiple cars
         self.create_connection()
         with self.connection.cursor() as cursor:
             cursor.execute(f"INSERT INTO links_cars VALUES(%s, %s, %s);",
@@ -401,8 +419,25 @@ class Server:
         self.close_connection()
         write_log_info(f"{car_id} - {link} added to the database.")
         print(f"{car_id} - {link} added to the database.")
-    
-    def add_rs_link(self, rs_id, rs_link, type, scraped):
+
+    def add_car_links(self, cars, write_log_info):
+        """
+        Adds multiple new cars to the links_cars table.
+
+        Args:
+            cars: list of lists that has car_id, link, scraped
+        """
+        self.create_connection()
+        with self.connection.cursor() as cursor:
+            for car_id, link, scraped in cars:
+                cursor.execute(f"INSERT INTO links_cars VALUES(%s, %s, %s);",
+                            (car_id, link, scraped))
+                write_log_info(f"{car_id} - {link} added to the database.")
+                print(f"{car_id} - {link} added to the database.")
+        self.connection.commit()
+        self.close_connection()
+
+    def add_rs_link(self, rs_id, rs_link, type, scraped, write_log_info):
         """
         Adds new cars to the links_cars table.
 
@@ -481,7 +516,7 @@ class Server:
         self.close_connection()
         return result
 
-    def insert_car_data(self, data):
+    def insert_car_data(self, data, write_log_info, write_log_error):
         """
         Inserts all the data from a given car into table cars.
         """
@@ -497,8 +532,7 @@ class Server:
             write_log_info(f"Scraped car {data['ime']}")
             print(f"Scraped car {data['ime']}")
         except Exception as e:
-            print(
-                f"Error {e}. Car {data['ime']} doesn't have complete data. Skipping.")
+            print(f"Error {e}. Car {data['ime']} doesn't have complete data. Skipping.")
             write_log_error(f"Error: {e}. Skipping car.")
         finally:
             self.connection.close()
@@ -522,7 +556,7 @@ class Server:
         self.close_connection()
         return result
 
-    def insert_rs_data(self, type, data):
+    def insert_rs_data(self, type, data, write_log_info, write_log_error):
         """
         Inserts all the data from a given rs into correct table.
         """

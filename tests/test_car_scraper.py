@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 # parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 # sys.path.append(parent_dir)
 
-from carScraper_v2 import CarScraper
+from car_scraper.carScraper_v2 import CarScraper
 from car_scraper.car import Car
 
 

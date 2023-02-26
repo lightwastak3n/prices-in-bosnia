@@ -6,7 +6,7 @@ from datetime import datetime, date
 
 sys.path.append('../')
 
-from carScraper_v2 import CarScraper
+from car_scraper.carScraper_v2 import CarScraper
 
 car_soup = BeautifulSoup(open("car1.html", "r", encoding="utf-8"), "html.parser")
 car_id = 51829903
