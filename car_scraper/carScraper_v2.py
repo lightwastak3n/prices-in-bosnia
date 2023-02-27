@@ -32,7 +32,7 @@ class CarScraper:
         Returns:
             Returns raw html.
         """
-        headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36', 'Referer': 'https://google.com/'}
+        headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36', 'Referer': 'https://bing.com/'}
         response = requests.get(url, headers=headers)
         content = response.content
         soup = BeautifulSoup(content, 'html.parser')

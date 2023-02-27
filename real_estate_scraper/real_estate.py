@@ -15,7 +15,6 @@ class RealEstate:
         self.data = data
         self.type = type
         self.rename_columns()
-        self.fix_date()
         self.fix_price_and_area()
         self.fix_int_cols()
 
@@ -34,15 +33,6 @@ class RealEstate:
         for spec in self.data:
             new_data[columns[self.type][spec]] = self.data[spec]
         self.data = new_data
-
-    def fix_date(self):
-        """
-        Fix date of listing to be the same format as SQL DATE format
-        """
-        year = self.data["datum_objave"][6:10]
-        month = self.data["datum_objave"][3:5]
-        day = self.data["datum_objave"][0:2]
-        self.data["datum_objave"] = f"{year}-{month}-{day}"
 
     def fix_price_and_area(self):
         """
@@ -111,6 +101,7 @@ class RealEstate:
     def fix_radio_columns(self):
         """
         Fix for a ~40 columns that should be radio buttons but for some reason can be Da Ne.
+        Not sure if this still applies to the new olx.
         """
         for col in radio_columns:
             if col in self.data:

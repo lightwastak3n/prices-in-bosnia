@@ -3,7 +3,7 @@ import re
 
 from time import sleep
 from random import randint
-from datetime import date
+from datetime import date, datetime
 from bs4 import BeautifulSoup
 
 
@@ -36,7 +36,7 @@ class RealEstateScraper:
         Returns:
             Returns raw html.
         """
-        headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36', 'Referer': 'https://google.com/'}
+        headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36', 'Referer': 'https://bing.com/'}
         response = requests.get(url, headers=headers)
         content = response.content
         soup = BeautifulSoup(content, 'html.parser')
@@ -80,9 +80,9 @@ class RealEstateScraper:
         Returns:
             Total number of new real estate found.
         """
-        house_ids = list(self.real_estates['Kuca'].keys())
-        flat_ids = list(self.real_estates['Stan'].keys())
-        land_ids = list(self.real_estates['Zemljiste'].keys())
+        house_ids = list(self.real_estates['Kuca'])
+        flat_ids = list(self.real_estates['Stan'])
+        land_ids = list(self.real_estates['Zemljiste'])
 
         new_houses = server.items_not_in_db(server, house_ids)
         new_flats = server.items_not_in_db(server, flat_ids)
@@ -103,10 +103,12 @@ class RealEstateScraper:
         price = price_p.text.split("KM")[1]
         data["Cijena"] = price
     
-    def get_real_estate_details(self, rs_soup, rs_id):
+    def get_real_estate_details(self, rs_soup, rs_id, type):
         """
-        Gets all the specs it can found on a given real estate page.
-        Name is found manually as h1 tag. Everything else shares the same tag so it can be done in a loop.
+        Gets all the specs it can found on a given rs page.
+        Name is found manually as h2 tag.
+        Most of the data is found via table. Some is found via labels.
+        The rest is found using class lookup in bs4 and regex.
 
         Args:
             real_estate_soup: soup object (like a raw html) generated from the real estate webpage
@@ -115,55 +117,61 @@ class RealEstateScraper:
         Returns:
             data: dictionary of properties and values found on a given listing
         """
-        name = rs_soup.find("h1")
+        name = rs_soup.find("h2")
         name = name.text.strip()
         data = {"id": rs_id, "Ime": name, "datum": f"{date.today()}"}
 
-        # Checking if its a company
-        data['kompanija'] = 1 if rs_soup.findAll("div", {"class": "povjerenje_mmradnja"}) else 0
+        price_span = rs_soup.find("span", {"class": "price-heading vat"})
+        data["Cijena"] = price_span.text
 
-        basic_info = rs_soup.findAll("p", {"class": "n"})
-        for i in basic_info:
-            key = i.text.strip()
-            value_p = i.find_next_sibling("p")
-            value = value_p.text.strip()
-            data[key] = value
-        # Fix for cijena shenanigans
-        if "Cijena bez PDV-a" in data:
-            del data["Cijena bez PDV-a"]
-        elif "Cijena - Hitna prodaja [?]" in data:
-            data["Cijena"] = data["Cijena - Hitna prodaja [?]"]
-            del data["Cijena - Hitna prodaja [?]"]
-        elif "Akcijska cijena - " in str(rs_soup) and data.get('Cijena') == None:
-            self.akcijska_cijena(rs_soup, data)
-        elif "Hitno" in data:
-            data["Cijena"] = data["Hitno"]
-            del data["Hitno"]
-            
-        if "Cijena" in data and data["Cijena"] == "Po dogovoru":
-            data["Cijena"] = "0"
-
-        extra_keys = rs_soup.findAll("div", {"class": "df1"})
-        for key in extra_keys:
-            value = key.find_next_sibling("div")
-            value = value.text.strip()
-            if not value:
+        # Extracting table data
+        rows = rs_soup.find_all('tr', {'data-v-fffe36e4': ''})
+        for row in rows:
+            name = row.find_all('td')[0].get_text().strip()
+            value = row.find_all('td')[1].get_text().strip()
+            if value == "✓":
                 value = 1
-            key = key.text.strip()
-            if key not in data:
-                data[key] = value
+            data[name] = value
 
-        scripts = rs_soup.findAll("script")
-        for script in scripts:
-            if "google.maps.LatLng" in script.text:
-                goal_script = script.text
-                lat_long = goal_script.split("center: new google.maps.LatLng(")[1].split(")")[0]
-                data["lat"], data["lng"] = lat_long.split(", ")
-        del data["OLX ID"]
-        del data["Obnovljen"]
+        # Get the location, condition and relative time of ad renewal
+        labels = rs_soup.find_all('label', {'class': 'btn-pill'})
+        # Mapping since not all cars have all the labels
+        label_mapping = {"M17": "Lokacija", "M7": "Stanje", "M12": "Obnovljen"}
+        for label in labels:
+            for key in label_mapping:
+                if key in str(label):
+                    # Fix for Obnovljen label included
+                    data[label_mapping[key]] = label.get_text().strip().replace("Obnovljen:\n", "")
+
+        # Get the type of seller
+        seller_p = rs_soup.find('p', {'class': 'user-info__title pb-md'})
+        shop = 1 if seller_p.get_text().strip() == "OLX shop" else 0
+        data['kompanija'] = shop
+
+        # Listing date. It's in epoch time so it needs to be converted.
+        pattern_date = r'date:(\d+)'
+        dates = re.findall(pattern_date, str(rs_soup))
+        date_ob = datetime.fromtimestamp(int(dates[0]))
+        date_str = date_ob.strftime('%Y-%m-%d')
+        data['Datum objave'] = date_str
+
+
+        # Regular expression pattern to extract latitude and longitude values
+        pattern = r"location:{lat:(\d+\.\d+),lon:(\d+\.\d+)},feedbacks"
+
+        # Find all matches of the pattern in the string and extract lat and lon from first match
+        matches = re.findall(pattern, str(rs_soup))
+        if len(matches) > 0:
+            data['lat'] = round(float(matches[0][0]), 4)
+            data['lng'] = round(float(matches[0][1]), 4)
+
+        # Delete stanje for land
+        if type == 'Zemljiste':
+            del data['Stanje']
+
         return data
 
-    def scrape_real_estate(self, rs_id, rs_link) -> dict:
+    def scrape_real_estate(self, rs_id, rs_link, write_log_info) -> dict:
         """
         Scrapes individual real_estate.
 

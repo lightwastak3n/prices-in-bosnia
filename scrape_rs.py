@@ -57,7 +57,7 @@ while True:
             type = item[2]
             print(f"Scraping {rs_link}.")
             try:
-                data = real_estate_scraper.scrape_real_estate(rs_id, rs_link)
+                data = real_estate_scraper.scrape_real_estate(rs_id, rs_link, write_log_info)
                 if data:
                     new_rs = RealEstate(data, type)
                     server.insert_rs_data(type, new_rs.data)

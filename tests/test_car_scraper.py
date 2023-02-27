@@ -55,7 +55,7 @@ def test_car_scrape():
         # Fix for date since scraper automatically uses todays date
         new_car.data["datum"] = test_car_data["datum"]
 
-        # Fix for test data since we are comparing them against
+        # Fix for test data ints since we are comparing them against strings
         for name in new_car.data:
             if isinstance(new_car.data[name], str) and new_car.data[name].isdigit():
                 new_car.data[name] = int(new_car.data[name])
