@@ -24,17 +24,20 @@ while True:
         new_houses, new_flats, new_lands = real_estate_scraper.filter_new_real_estates(server)
         new_found = len(new_houses) + len(new_flats) + len(new_lands)
 
-        # Make [id, link, 0] list to add to the server
+        print("Scraped main rs pages. And checked for new listings.")
+        # Make [id, link, type, 0] list to add to the server
         add_houses = [[house_id, f"https://olx.ba/artikal/{house_id}/", "Kuca", 0] for house_id in new_houses]
         add_flats = [[flat_id, f"https://olx.ba/artikal/{flat_id}/", "Stan", 0] for flat_id in new_flats]
         add_lands = [[land_id, f"https://olx.ba/artikal/{land_id}/", "Zemljiste", 0] for land_id in new_lands]
+        
 
-        server.add_car_links(add_houses, write_log_info)
-        server.add_car_links(add_flats, write_log_info)
-        server.add_car_links(add_lands, write_log_info)
-
+        server.add_rs_links(add_houses, write_log_info)
+        server.add_rs_links(add_flats, write_log_info)
+        server.add_rs_links(add_lands, write_log_info)
+        print("Added new listings to the server.")
         not_scraped = server.get_non_scraped_rs()
         total_not_scraped = len(not_scraped)
+        print("Got the non scraped listings from the server.")
 
         if new_found > 40:
             allocated_time = randint(200,300)
@@ -57,10 +60,10 @@ while True:
             type = item[2]
             print(f"Scraping {rs_link}.")
             try:
-                data = real_estate_scraper.scrape_real_estate(rs_id, rs_link, write_log_info)
+                data = real_estate_scraper.scrape_real_estate(rs_id, rs_link, type, write_log_info)
                 if data:
                     new_rs = RealEstate(data, type)
-                    server.insert_rs_data(type, new_rs.data)
+                    server.insert_rs_data(type, new_rs.data, write_log_info, write_log_error)
             except Exception as e:
                 print(f"{e}. Invalid listing.")
             finally:

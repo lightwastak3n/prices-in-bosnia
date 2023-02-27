@@ -84,9 +84,9 @@ class RealEstateScraper:
         flat_ids = list(self.real_estates['Stan'])
         land_ids = list(self.real_estates['Zemljiste'])
 
-        new_houses = server.items_not_in_db(server, house_ids)
-        new_flats = server.items_not_in_db(server, flat_ids)
-        new_lands = server.items_not_in_db(server, land_ids)
+        new_houses = server.items_not_in_db('rs_links', house_ids)
+        new_flats = server.items_not_in_db('rs_links', flat_ids)
+        new_lands = server.items_not_in_db('rs_links', land_ids)
 
         return new_houses, new_flats, new_lands
 
@@ -165,13 +165,17 @@ class RealEstateScraper:
             data['lat'] = round(float(matches[0][0]), 4)
             data['lng'] = round(float(matches[0][1]), 4)
 
+        # Fix for obnovljen
+        if "Obnovljen" in data:
+            data["Obnovljen"] = f"{date.today()}"
+
         # Delete stanje for land
         if type == 'Zemljiste':
             del data['Stanje']
 
         return data
 
-    def scrape_real_estate(self, rs_id, rs_link, write_log_info) -> dict:
+    def scrape_real_estate(self, rs_id, rs_link, type, write_log_info) -> dict:
         """
         Scrapes individual real_estate.
 
@@ -182,9 +186,9 @@ class RealEstateScraper:
         Returns:
             data: dictionary of properties and values found on a given listing
         """
-        real_estate_soup = self.get_soup(rs_link)
+        rs_soup = self.get_soup(rs_link)
         try:
-            data = self.get_real_estate_details(real_estate_soup, rs_id)
+            data = self.get_real_estate_details(rs_soup, rs_id, type)
             if "Plaćam do" in data:
                 print("Potraznja. Skipping.")
                 return None
