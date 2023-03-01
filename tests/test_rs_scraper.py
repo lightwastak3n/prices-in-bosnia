@@ -6,10 +6,10 @@ from real_estate_scraper.rsScraper import RealEstateScraper
 from real_estate_scraper.real_estate import RealEstate
 
 
-def get_main_page_test_data(type):
+def get_main_page_test_data(item_type):
     with open("test_data.json", "r", encoding="utf-8") as f:
         data = json.load(f)
-    return data[type]
+    return data[item_type]
 
 
 def get_item_data(item):
@@ -22,22 +22,22 @@ def get_item_data(item):
     return item_data
 
 
-def get_page_soup(type):
-    with open(f"htmls/{type}.html", 'r', encoding='utf-8') as mcp:
+def get_page_soup(html_file):
+    with open(f"htmls/{html_file}.html", 'r', encoding='utf-8') as mcp:
         main_listing_page = mcp.read()
     soup = BeautifulSoup(main_listing_page, 'html.parser')
     return soup
 
 
-def scrape_item(item_id, item_html_name, type):
+def scrape_item(item_id, item_html_name, rs_type):
     test_item_data = get_item_data(item_html_name)
 
     scraper = RealEstateScraper()
     listing_id = item_id
     listing_soup = get_page_soup(item_html_name)
 
-    listing_data = scraper.get_real_estate_details(listing_soup, listing_id, type)
-    new_listing = RealEstate(listing_data, type)
+    listing_data = scraper.get_real_estate_details(listing_soup, listing_id, rs_type)
+    new_listing = RealEstate(listing_data, rs_type)
 
     # Fix for test data ints since we are comparing them against strings
     for name in new_listing.data:

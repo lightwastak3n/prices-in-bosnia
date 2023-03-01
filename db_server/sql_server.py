@@ -437,7 +437,7 @@ class Server:
         self.connection.commit()
         self.close_connection()
 
-    def add_rs_link(self, rs_id, rs_link, type, scraped, write_log_info):
+    def add_rs_link(self, rs_id, rs_link, rs_type, scraped, write_log_info):
         """
         Adds new cars to the links_cars table.
 
@@ -449,7 +449,7 @@ class Server:
         self.create_connection()
         with self.connection.cursor() as cursor:
             cursor.execute(f"INSERT INTO rs_links VALUES(%s, %s, %s, %s);",
-                           (rs_id, rs_link, type, scraped))
+                           (rs_id, rs_link, rs_type, scraped))
             self.connection.commit()
         self.close_connection()
         write_log_info(f"{rs_id} - {rs_link} added to the database.")
@@ -464,9 +464,9 @@ class Server:
         """
         self.create_connection()
         with self.connection.cursor() as cursor:
-            for rs_id, rs_link, type, scraped in rs:
+            for rs_id, rs_link, rs_type, scraped in rs:
                 cursor.execute(f"INSERT INTO rs_links VALUES(%s, %s, %s, %s);",
-                            (rs_id, rs_link, type, scraped))
+                            (rs_id, rs_link, rs_type, scraped))
                 write_log_info(f"{rs_id} - {rs_link} added to the database.")
                 print(f"{rs_id} - {rs_link} added to the database.")
         self.connection.commit()
@@ -555,7 +555,7 @@ class Server:
         finally:
             self.connection.close()
 
-    def get_rs_data(self, type, rs_id):
+    def get_rs_data(self, rs_type, rs_id):
         """
         Gets all the data for a given rs_id
 
@@ -567,18 +567,18 @@ class Server:
             result: list of all of the rs properties
         """
         self.create_connection()
-        table_name = self.mapping[type]
+        table_name = self.mapping[rs_type]
         with self.connection.cursor() as cursor:
             cursor.execute(f"SELECT * FROM {table_name} WHERE id={rs_id}")
             result = cursor.fetchone()
         self.close_connection()
         return result
 
-    def insert_rs_data(self, type, data, write_log_info, write_log_error):
+    def insert_rs_data(self, rs_type, data, write_log_info, write_log_error):
         """
         Inserts all the data from a given rs into correct table.
         """
-        table_name = self.rs_mapping[type]
+        table_name = self.rs_mapping[rs_type]
         columns = ", ".join([str(x) for x in list(data.keys())])
         placeholders = ", ".join(["%s"] * len(data))
         sql = f"INSERT INTO {table_name}({columns}) VALUES({placeholders});"

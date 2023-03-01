@@ -59,8 +59,8 @@ class RealEstateScraper:
         """
         if get_main_pages:
             self.get_main_pages()
-        for type in self.main_pages:
-            soup = self.main_pages[type]
+        for rs_type in self.main_pages:
+            soup = self.main_pages[rs_type]
 
             all_scripts = soup.findAll("script")
             for script in all_scripts:
@@ -71,7 +71,7 @@ class RealEstateScraper:
             results = match.group(0)
             listings_ids = re.findall(r'(?<=,id:)\d+,', results)
             for id in listings_ids:
-                self.real_estates[type][id[:-1]] = f"https://olx.ba/artikal/{id[:-1]}/"
+                self.real_estates[rs_type][id[:-1]] = f"https://olx.ba/artikal/{id[:-1]}/"
 
     def filter_new_real_estates(self, server) -> int:
         """
@@ -103,7 +103,7 @@ class RealEstateScraper:
         price = price_p.text.split("KM")[1]
         data["Cijena"] = price
     
-    def get_real_estate_details(self, rs_soup, rs_id, type):
+    def get_real_estate_details(self, rs_soup, rs_id, rs_type):
         """
         Gets all the specs it can found on a given rs page.
         Name is found manually as h2 tag.
@@ -136,24 +136,17 @@ class RealEstateScraper:
         # Get the location, condition and relative time of ad renewal
         labels = rs_soup.find_all('label', {'class': 'btn-pill'})
         # Mapping since not all cars have all the labels
-        label_mapping = {"M17": "Lokacija", "M7": "Stanje", "M12": "Obnovljen"}
+        label_mapping = {"M17": "Lokacija", "M7": "Stanje"}
         for label in labels:
             for key in label_mapping:
                 if key in str(label):
                     # Fix for Obnovljen label included
-                    data[label_mapping[key]] = label.get_text().strip().replace("Obnovljen:\n", "")
+                    data[label_mapping[key]] = label.get_text().strip()
 
         # Get the type of seller
         seller_p = rs_soup.find('p', {'class': 'user-info__title pb-md'})
         shop = 1 if seller_p.get_text().strip() == "OLX shop" else 0
         data['kompanija'] = shop
-
-        # Listing date. It's in epoch time so it needs to be converted.
-        pattern_date = r'date:(\d+)'
-        dates = re.findall(pattern_date, str(rs_soup))
-        date_ob = datetime.fromtimestamp(int(dates[0]))
-        date_str = date_ob.strftime('%Y-%m-%d')
-        data['Datum objave'] = date_str
 
 
         # Regular expression pattern to extract latitude and longitude values
@@ -165,17 +158,18 @@ class RealEstateScraper:
             data['lat'] = round(float(matches[0][0]), 4)
             data['lng'] = round(float(matches[0][1]), 4)
 
-        # Fix for obnovljen
-        if "Obnovljen" in data:
-            data["Obnovljen"] = f"{date.today()}"
+        if "Datum objave" in data:
+            del data["Datum objave"]
+        if "Vrsta opreme" in data:
+            del data["Vrsta opreme"]
 
         # Delete stanje for land
-        if type == 'Zemljiste':
+        if rs_type == 'Zemljiste' and 'Stanje' in data:
             del data['Stanje']
 
         return data
 
-    def scrape_real_estate(self, rs_id, rs_link, type, write_log_info) -> dict:
+    def scrape_real_estate(self, rs_id, rs_link, rs_type, write_log_info) -> dict:
         """
         Scrapes individual real_estate.
 
@@ -188,7 +182,7 @@ class RealEstateScraper:
         """
         rs_soup = self.get_soup(rs_link)
         try:
-            data = self.get_real_estate_details(rs_soup, rs_id, type)
+            data = self.get_real_estate_details(rs_soup, rs_id, rs_type)
             if "Plaćam do" in data:
                 print("Potraznja. Skipping.")
                 return None

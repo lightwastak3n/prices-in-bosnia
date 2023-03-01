@@ -57,15 +57,20 @@ while True:
         for item in not_scraped[:possible_fit]:
             rs_id = item[0]
             rs_link = item[1]
-            type = item[2]
+            rs_type = item[2]
             print(f"Scraping {rs_link}.")
             try:
-                data = real_estate_scraper.scrape_real_estate(rs_id, rs_link, type, write_log_info)
+                data = real_estate_scraper.scrape_real_estate(rs_id, rs_link, rs_type, write_log_info)
                 if data:
-                    new_rs = RealEstate(data, type)
-                    server.insert_rs_data(type, new_rs.data, write_log_info, write_log_error)
+                    new_rs = RealEstate(data, rs_type)
+                    server.insert_rs_data(rs_type, new_rs.data, write_log_info, write_log_error)
             except Exception as e:
-                print(f"{e}. Invalid listing.")
+                print(f"{e}. Invalid listing. {rs_link}")
+                write_log_error(f"{e}. Invalid listing. {rs_link}")
+                if data:
+                    write_log_info(data)
+                else:
+                    write_log_info(f"No data scraped for {rs_link}")
             finally:
                 server.mark_as_scraped("rs_links", rs_id)
             sleep(pause_between_items)

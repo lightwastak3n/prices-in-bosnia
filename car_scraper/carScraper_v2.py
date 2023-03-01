@@ -134,13 +134,6 @@ class CarScraper:
         shop = 1 if seller_p.get_text().strip() == "OLX shop" else 0
         data['radnja'] = shop
 
-        # Listing date. It's in epoch time so it needs to be converted.
-        pattern_date = r'date:(\d+)'
-        dates = re.findall(pattern_date, str(car_soup))
-        date_ob = datetime.fromtimestamp(int(dates[0]))
-        date_str = date_ob.strftime('%Y-%m-%d')
-        data['Datum objave'] = date_str
-
         return data
 
     def scrape_car(self, car_id, car_link, write_log_info) -> dict:
