@@ -63,7 +63,7 @@ class CarScraper:
         for id in car_ids:
             self.cars[id[:-1]] = f"https://olx.ba/artikal/{id[:-1]}/"
 
-    def filter_new_cars(self, server) -> int:
+    def filter_new_cars(self, server) -> list:
         """
         Checks id of each car found against the ids already present in the database and returns the new ones.
 

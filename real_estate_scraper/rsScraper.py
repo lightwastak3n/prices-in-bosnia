@@ -158,6 +158,8 @@ class RealEstateScraper:
             data['lat'] = round(float(matches[0][0]), 4)
             data['lng'] = round(float(matches[0][1]), 4)
 
+        # FFS olx what the fuck is with these random properties
+        # Deleting al these 
         if "Datum objave" in data:
             del data["Datum objave"]
         if "Vrsta opreme" in data:
