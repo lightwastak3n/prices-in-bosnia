@@ -119,12 +119,12 @@ class CarScraper:
         # Get the location, condition and relative time of ad renewal
         labels = car_soup.find_all('label', {'class': 'btn-pill'})
         # Mapping since not all cars have all the labels
-        label_mapping = {"M17": "Lokacija", "M7": "Stanje", "M12": "Obnovljen"}
+        label_mapping = {"M17": "Lokacija", "M7": "Stanje"}
         for label in labels:
             for key in label_mapping:
                 if key in str(label):
                     # Fix for Obnovljen label included
-                    data[label_mapping[key]] = label.get_text().strip().replace("Obnovljen:\n", "")
+                    data[label_mapping[key]] = label.get_text().strip()
 
         # We are only scraping sell ads
         data["Vrsta oglasa"] = "Prodaja"

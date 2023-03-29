@@ -40,6 +40,7 @@ class Car:
         if "kilometraza" in self.data:
             if "," in self.data["kilometraza"]:
                 self.data["kilometraza"] = self.data["kilometraza"].split(",")[0]
+            self.data["kilometraza"] = self.data["kilometraza"].replace("km", "")
             self.data["kilometraza"] = int(self.data["kilometraza"].replace(".",""))
         if "vrata" in self.data:
             self.data["vrata"] = self.data["vrata"].split("/")[0]

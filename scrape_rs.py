@@ -55,6 +55,7 @@ while True:
         print(f"Found {new_found} new items. Left to scrape {len(not_scraped)}.")
         print(f"Will scrape {possible_fit} real estate for {allocated_time} seconds.")
         for item in not_scraped[:possible_fit]:
+            sleep(pause_between_items)
             rs_id = item[0]
             rs_link = item[1]
             rs_type = item[2]
@@ -66,14 +67,17 @@ while True:
                     server.insert_rs_data(rs_type, new_rs.data, write_log_info, write_log_error)
             except Exception as e:
                 print(f"{e}. Invalid listing. {rs_link}")
+                send_ntfy(str(f"Invalid listing\n{e}\n{rs_link}"))
                 write_log_error(f"{e}. Invalid listing. {rs_link}")
                 if data:
                     write_log_info(data)
+                    print(data)
+                    send_ntfy(data)
                 else:
+                    print("No data scraped for", rs_link)
                     write_log_info(f"No data scraped for {rs_link}")
             finally:
                 server.mark_as_scraped("rs_links", rs_id)
-            sleep(pause_between_items)
         print(f"Rs scraped. Waiting for {time_left} seconds.")
     except Exception as e:
         print(e, rs_link)

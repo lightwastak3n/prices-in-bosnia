@@ -47,6 +47,7 @@ while True:
         print(f"Found {new_found} new cars. Left to scrape {len(not_scraped)}.")
         print(f"Will scrape {possible_fit} cars for {allocated_time} seconds.")
         for car in not_scraped[:possible_fit]:
+            sleep(pause_between_cars)
             car_id = car[0]
             car_link = car[1]
             print(f"Scraping {car_link}.")
@@ -54,12 +55,15 @@ while True:
             if data:
                 new_car = Car(data)
                 server.insert_car_data(new_car.data, write_log_info, write_log_error)
+                print(f"Car {car_id} scraped.")
             server.mark_as_scraped("links_cars", car_id)
-            sleep(pause_between_cars)
         print(f"Cars scraped. Waiting for {time_left} seconds.")
     except Exception as e:
         send_ntfy(str(e))
         write_log_error(f"{e}.")
+        server.mark_as_scraped("links_cars", car_id)
+        if data:
+            write_log_info(data)
     else:
         sleep(time_left)
     finally:
