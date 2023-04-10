@@ -164,6 +164,10 @@ class RealEstateScraper:
             del data["Datum objave"]
         if "Vrsta opreme" in data:
             del data["Vrsta opreme"]
+        if "Ime i broj licence agenta" in data:
+            del data["Ime i broj licence agenta"]
+        if "Broj posredničkog ugovora" in data:
+            del data["Broj posredničkog ugovora"]
 
         # Delete stanje for land
         if rs_type == 'Zemljiste' and 'Stanje' in data:
