@@ -318,6 +318,33 @@ class Server:
                             broj_pregleda INT,
                             FOREIGN KEY(id) REFERENCES rs_links(id));''')
 
+    def create_table_items(self):
+        """
+        Creates a table that stores items from stores.
+        """
+        with self.connection.cursor() as cursor:
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS items (
+                id INTEGER AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                type VARCHAR(255) NOT NULL,
+                unit VARCHAR(255) NOT NULL,
+                store VARCHAR(255) NOT NULL,
+            );
+            ''')
+    
+    def create_table_item_prices(self):
+        with self.connection.cursor() as cursor:
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS item_prices (
+                id INTEGER AUTO_INCREMENT PRIMARY KEY,
+                item_id INTEGER NOT NULL,
+                price REAL NOT NULL,
+                date DATE NOT NULL,
+                FOREIGN KEY (item_id) REFERENCES items (id)
+            );
+            ''')
+
     def database_setup(self):
         """
         Setup all the tables.
