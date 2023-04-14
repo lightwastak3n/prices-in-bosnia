@@ -47,7 +47,7 @@
         "cijena": 24999,
         "stanje": "Korišteno",
         "lokacija": "Visoko",
-        "obnovljen": "prije 3 sata",
+        "obnovljen": "2023-02-19",
         "proizvodjac": "Volkswagen",
         "model": "Tiguan",
         "godiste": 2012,
@@ -121,8 +121,8 @@
         "udaren": "None",
         "vrsta_oglasa": "Prodaja",
         "radnja": 1,
-        "datum": "2023-02-15",
-        "datum_objave": "2023-02-19"
+        "datum": "2023-02-19",
+        "datum_objave": "2023-02-15"
     },
     "car2": {
         "id": 51934150,
@@ -130,7 +130,7 @@
         "cijena": 7900,
         "stanje": "None",
         "lokacija": "Banja Luka",
-        "obnovljen": "prije 10 minuta",
+        "obnovljen": "2023-02-24",
         "proizvodjac": "Audi",
         "model": "A3",
         "godiste": 2004,

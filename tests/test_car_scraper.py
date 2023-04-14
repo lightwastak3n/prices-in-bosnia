@@ -9,7 +9,7 @@ from car_scraper.car import Car
 
 
 
-def get_main_page_data():
+def get_main_page_cars():
     with open("test_data.json", "r", encoding="utf-8") as f:
         data = json.load(f)
     return data["cars"]
@@ -33,7 +33,7 @@ def test_get_cars_from_main():
     scraper = CarScraper()
     scraper.main_page = soup
     scraper.get_cars_from_main(request_main_page=False)
-    test_cars = get_main_page_data()
+    test_cars = get_main_page_cars()
     assert scraper.cars == test_cars
 
 

@@ -134,6 +134,18 @@ class CarScraper:
         shop = 1 if seller_p.get_text().strip() == "OLX shop" else 0
         data['radnja'] = shop
 
+        # Get the date of ad posting and ad renewal
+        pattern = r'},date:(\d+),sku_number:[a-z],created_at:(\w+)}'
+        dates = re.findall(pattern, car_soup.prettify())
+        if len(dates[0]) > 1:
+            data["Obnovljen"] = datetime.fromtimestamp(int(dates[0][0])).strftime('%Y-%m-%d')
+            # Fix created_at being a character
+            if dates[0][1].isdigit():
+                data["Datum objave"] = datetime.fromtimestamp(int(dates[0][1])).strftime('%Y-%m-%d')
+            else:
+                data["Datum objave"] = data["Obnovljen"]
+
+
         return data
 
     def scrape_car(self, car_id, car_link, write_log_info) -> dict:

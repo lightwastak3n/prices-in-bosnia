@@ -10,6 +10,8 @@ from bs4 import BeautifulSoup
 # from selenium.webdriver.support import expected_conditions as EC
 
 
+
+
 LINKS = [
     "https://eshop.tropic.ba/product-category/voce-i-povrce/?orderby=popularity",
     "https://eshop.tropic.ba/product-category/mlijeko-mlijecni-proizvodi-jaja/?orderby=popularity",
@@ -18,6 +20,8 @@ LINKS = [
     "https://eshop.tropic.ba/product-category/pekarski-proizvodi/?orderby=popularity",
     "https://eshop.tropic.ba/product-category/osnovne-zivotne-namirnice/?orderby=popularity"
 ]
+
+
 
 
 # Set up headless mode for Chrome WebDriver
