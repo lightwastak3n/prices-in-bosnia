@@ -7,7 +7,6 @@ from db_server.sql_server import Server
 server = Server()
 scraper = TropicScraper()
 
-
 scraper.get_html()
 scraper.scrape_items()
 new_items, items_inserted = scraper.add_items_to_database(server)

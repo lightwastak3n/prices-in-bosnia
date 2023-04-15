@@ -9,11 +9,11 @@ from bs4 import BeautifulSoup
 class TropicScraper:
     category_links = {
     "fruits and vegetables": "https://eshop.tropic.ba/product-category/voce-i-povrce/?orderby=popularity",
-    "dairy and eggs": "https://eshop.tropic.ba/product-category/mlijeko-mlijecni-proizvodi-jaja/?orderby=popularity",
-    "personal hygiene": "https://eshop.tropic.ba/product-category/licna-higijena/?orderby=popularity",
+    # "dairy and eggs": "https://eshop.tropic.ba/product-category/mlijeko-mlijecni-proizvodi-jaja/?orderby=popularity",
+    # "personal hygiene": "https://eshop.tropic.ba/product-category/licna-higijena/?orderby=popularity",
     "meat": "https://eshop.tropic.ba/product-category/svjeze-meso/?orderby=popularity",
-    "bakery products": "https://eshop.tropic.ba/product-category/pekarski-proizvodi/?orderby=popularity",
-    "basic groceries": "https://eshop.tropic.ba/product-category/osnovne-zivotne-namirnice/?orderby=popularity"
+    # "bakery products": "https://eshop.tropic.ba/product-category/pekarski-proizvodi/?orderby=popularity",
+    # "basic groceries": "https://eshop.tropic.ba/product-category/osnovne-zivotne-namirnice/?orderby=popularity"
     }
 
     div_classes = {
@@ -27,10 +27,6 @@ class TropicScraper:
         self.items = []
         self.htmls = {item_type: [] for item_type in self.category_links}
 
-    def get_nth_page(self, n, link):
-        link_parts = link.split("?")
-        return link_parts[0] + "page/" + str(n) + "/?" + link_parts[1]
-
     def get_html(self):
         """ Gets the raw html of urls specified above. When testing we skip this step"""
         get_nth_page = lambda n, link: link.split("?")[0] + "page/" + str(n) + "/?" + link.split("?")[1]
@@ -38,12 +34,13 @@ class TropicScraper:
             print("Getting html for", item_type)
             html = requests.get(self.category_links[item_type]).content
             self.htmls[item_type].append(html)
-            sleep(randint(20, 30))
-            for page_number in range(2, 6):
+            page_limit = 5 if item_type != "meat" else 6
+            for page_number in range(2, page_limit):
+                sleep(randint(20, 30))
                 html = requests.get(get_nth_page(page_number, self.category_links[item_type])).content
                 self.htmls[item_type].append(html)
-                sleep(randint(20, 30))
-
+            sleep(randint(20, 30))
+            
     def scrape_items(self):
         for item_type in self.htmls:
             print("Scraping", item_type)

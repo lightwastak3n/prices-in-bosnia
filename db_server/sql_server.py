@@ -698,11 +698,20 @@ class Server:
         """
         self.create_connection()
         with self.connection.cursor() as cursor:
-            for item in items_list:
-                # First we need to get the item ids from the items table based on the item name and store.
-                cursor.execute("SELECT id FROM items WHERE name = %s AND store = %s;", (item['name'], store))
-                item_id = cursor.fetchone()[0]
-                # Inserting items
-                cursor.execute("INSERT INTO item_prices (item_id, price, date) VALUES (%s, %s, %s);", (item_id, item['price'], date))
+            # We are going to insert 100 items at a time.
+            batch_size = 100
+            for i in range(0, len(items_list), batch_size):
+                batch = items_list[i:i+batch_size]
+                names = [item['name'] for item in batch]
+
+                placeholders = ', '.join(['%s'] * len(batch))
+                query = f"SELECT id, name FROM items WHERE name IN ({placeholders}) AND store = %s;"
+                cursor.execute(query, (*names, store))
+                
+                items_id = {name: id for id, name in cursor.fetchall()}
+                batch_items_data = [(items_id[item['name']], item['price'], date) for item in batch]
+                query = "INSERT INTO item_prices (item_id, price, date) VALUES (%s, %s, %s);"
+                cursor.executemany(query, batch_items_data)
+
         self.connection.commit()
         self.close_connection()
