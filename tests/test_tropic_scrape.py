@@ -22,7 +22,7 @@ def test_scrape():
 
     for item_type in item_types:
         scraper.items = []
-        scraper.htmls = {item_type: get_test_html(item_type)}
+        scraper.htmls = {item_type: [get_test_html(item_type)]}
         scraper.scrape_items()
 
         # Extract scraped data to test format
