@@ -1,60 +1,78 @@
 import requests
-import time
 
+from datetime import date
+from time import sleep
 from bs4 import BeautifulSoup
 
-# from selenium import webdriver
-# from selenium.webdriver.chrome.options import Options
-# from selenium.webdriver.common.by import By
-# from selenium.webdriver.support.ui import WebDriverWait
-# from selenium.webdriver.support import expected_conditions as EC
 
+class TropicScraper:
+    category_links = {
+    "fruits and vegetables": "https://eshop.tropic.ba/product-category/voce-i-povrce/?orderby=popularity",
+    "dairy and eggs": "https://eshop.tropic.ba/product-category/mlijeko-mlijecni-proizvodi-jaja/?orderby=popularity",
+    # "personal hygiene": "https://eshop.tropic.ba/product-category/licna-higijena/?orderby=popularity",
+    # "meat": "https://eshop.tropic.ba/product-category/svjeze-meso/?orderby=popularity",
+    # "bakery products": "https://eshop.tropic.ba/product-category/pekarski-proizvodi/?orderby=popularity",
+    # "basic groceries": "https://eshop.tropic.ba/product-category/osnovne-zivotne-namirnice/?orderby=popularity"
+    }
 
+    div_classes = {
+        "link": "woocommerce-LoopProduct-link woocommerce-loop-product__link",
+        "name": "woocommerce-loop-product__title",
+        "unit": "woocommerce-Price-currencySymbol amount mcmp-recalc-price-suffix",
+        "price": "woocommerce-Price-amount amount"
+    }
 
+    def __init__(self):
+        self.items = []
+        self.htmls = {}
 
-LINKS = [
-    "https://eshop.tropic.ba/product-category/voce-i-povrce/?orderby=popularity",
-    "https://eshop.tropic.ba/product-category/mlijeko-mlijecni-proizvodi-jaja/?orderby=popularity",
-    "https://eshop.tropic.ba/product-category/licna-higijena/?orderby=popularity",
-    "https://eshop.tropic.ba/product-category/svjeze-meso/?orderby=popularity",
-    "https://eshop.tropic.ba/product-category/pekarski-proizvodi/?orderby=popularity",
-    "https://eshop.tropic.ba/product-category/osnovne-zivotne-namirnice/?orderby=popularity"
-]
+    def get_html(self):
+        """ Gets the raw html of urls specified above. When testing we skip this step"""
+        for item_type in self.category_links:
+            print("Getting html for", item_type)
+            html = requests.get(self.category_links[item_type]).content
+            self.htmls[item_type] = html
+            sleep(5)
 
+    def scrape_items(self):
+        for item_type in self.htmls:
+            print("Scraping", item_type)
+            soup = BeautifulSoup(self.htmls[item_type], 'html.parser')
 
+            # Find all links with the specified class
+            links = soup.find_all('a', class_=self.div_classes['link'])
 
+            for item in links:
+                # Find the item name, price, and unit within each link
+                name = item.find('h2', class_=self.div_classes['name']).text.strip().lower()
+                price = item.find('span', class_=self.div_classes['price']).find('bdi').text.strip("KM")
+                if item.find('span', class_=self.div_classes['unit']) is None:
+                    unit = "unit"
+                else:
+                    unit = item.find('span', class_=self.div_classes['unit']).text.strip("/")
 
-# Set up headless mode for Chrome WebDriver
-chrome_options = Options()
-chrome_options.add_argument("--headless")
+                # Store the extracted data in a dictionary
+                item = {
+                    'name': name,
+                    'price': float(price),
+                    'unit': unit,
+                    'type': item_type
+                }
 
-# Initialize the webdriver
-driver = webdriver.Chrome(options=chrome_options)
-driver.get(url)
+                self.items.append(item)
 
-# Wait for the "load more" button to appear, adjust the timeout as needed
-wait = WebDriverWait(driver, 10)
-
-# You may need to update the CSS selector to match the "load more" button on your target website
-load_more_button_selector = '.load-more-button'
-
-while True:
-    try:
-        # Find the "load more" button and click it
-        load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_button_selector)))
-        load_more_button.click()
-        time.sleep(7)  # Add a small delay to allow the new content to load
-    except Exception as e:
-        print("No more 'load more' buttons found or an error occurred.")
-        break
-
-# Get the page source and parse it using BeautifulSoup
-html = driver.page_source
-soup = BeautifulSoup(html, 'html.parser')
-
-# Close the browser window
-driver.quit()
-
-# Now, you can use BeautifulSoup to find and extract the data you need.
-# Replace the CSS selector below with the appropriate one for the items you want to scrape.
-
+    def add_items_to_database(self, server):
+        """
+        Add new items to the items table in the database
+        
+        Args:
+            server: The server object that handles the database connection
+        """
+        print("Adding items to database")
+        today = date.today()
+        new_items = server.check_if_items_exist(self.items, "tropic")
+        if not new_items:
+            print("No new items")
+        else:
+            server.insert_items(new_items, "tropic")
+        server.insert_item_prices(self.items, "tropic", today)

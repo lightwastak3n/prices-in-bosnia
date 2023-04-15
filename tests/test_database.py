@@ -45,7 +45,6 @@ def test_connecting_to_server(get_server):
 
 
 def test_tables_in_db(get_server):
-    get_server.database_setup()
     get_server.create_connection()
     with get_server.connection.cursor() as cursor:
         cursor.execute("SHOW TABLES;")
@@ -57,23 +56,15 @@ def test_tables_in_db(get_server):
     get_server.connection.close()
     assert all([table in tables for table in test_tables]) == True
 
-
-# def test_filter_cars(get_server):
-#     with open("test_data.json", 'r') as f:
-#         data = json.load(f)
-#     new_cars = data['cars']
+# Used before but not needed anymore. Tables hold test data.
+# def test_delete_tables(get_server):
+#     delete_tables(get_server)
 #     get_server.create_connection()
-
-    
-
-def test_delete_tables(get_server):
-    delete_tables(get_server)
-    get_server.create_connection()
-    with get_server.connection.cursor() as cursor:
-        cursor.execute("SHOW TABLES;")
-        result = cursor.fetchall()
-        tables = []
-        for item in result:
-            tables.append(item[0])
-    get_server.connection.close()
-    assert tables == []
+#     with get_server.connection.cursor() as cursor:
+#         cursor.execute("SHOW TABLES;")
+#         result = cursor.fetchall()
+#         tables = []
+#         for item in result:
+#             tables.append(item[0])
+#     get_server.connection.close()
+#     assert tables == []

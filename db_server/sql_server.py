@@ -466,12 +466,12 @@ class Server:
 
     def add_rs_link(self, rs_id, rs_link, rs_type, scraped, write_log_info):
         """
-        Adds new cars to the links_cars table.
+        Adds new rs to the rs_links table.
 
         Args:
-            car_id: id of the car
-            link: link of the car listing
-            scraped: 0 since it is the new car and hasnt been scraped yet
+            rs_id: id of the rs
+            link: link of the rs listing
+            scraped: 0 since it is the new rs and hasnt been scraped yet
         """
         self.create_connection()
         with self.connection.cursor() as cursor:
@@ -487,7 +487,7 @@ class Server:
         Adds multiple new res to the rs_links table.
 
         Args:
-            cars: list of lists that has car_id, link, scraped
+            rs: list of lists that has rs_id, link, scraped
         """
         self.create_connection()
         with self.connection.cursor() as cursor:
@@ -650,3 +650,59 @@ class Server:
             result = cursor.fetchall()
         self.close_connection()
         return result
+
+    def check_if_items_exist(self, items_list, store):
+        """
+        Checks if items exist in the items table.
+        Since we are scraping one store we can just fetch all items from that store that are in our table.
+
+        Args:
+            items_list (list): A list of dictionaries containing information about items.
+            store (str): The name of the store to check for the items.
+
+        Returns:
+            items_to_add: A list of missing items that are not in the items table for the specified store.
+        """
+        self.create_connection()
+        items_names = [item['name'] for item in items_list]
+        with self.connection.cursor() as cursor:
+            cursor.execute("SELECT name FROM items WHERE store = %s;", (store,))
+            existing_items = [x[0] for x in cursor.fetchall()]
+        self.close_connection()
+        missing_items = set(items_names) - set(existing_items)
+        items_to_add = [item for item in items_list if item['name'] in missing_items]
+        return items_to_add
+    
+    def insert_items(self, items_list, store):
+        """
+        Inserts item name, type, unit, store into items table.
+
+        Args:
+            items_list (list): A list of dictionaries containing information about items.
+            store (str): The name of the store in which the items are sold.
+        """
+        self.create_connection()
+        with self.connection.cursor() as cursor:
+            for item in items_list:
+                cursor.execute("INSERT INTO items (name, type, unit, store) VALUES (%s, %s, %s, %s);", (item['name'], item['type'], item['unit'], store))
+        self.connection.commit()
+        self.close_connection()
+
+    def insert_item_prices(self, items_list, store, date):
+        """
+        Insert items into item_prices table. We store the price of the each item and the date on which it was scraped.
+
+        Args:
+            items_list (list): A list of dictionaries containing information about items.
+            store (str): The name of the store in which the items are sold.
+        """
+        self.create_connection()
+        with self.connection.cursor() as cursor:
+            for item in items_list:
+                # First we need to get the item ids from the items table based on the item name and store.
+                cursor.execute("SELECT id FROM items WHERE name = %s AND store = %s;", (item['name'], store))
+                item_id = cursor.fetchone()[0]
+                # Inserting items
+                cursor.execute("INSERT INTO item_prices (item_id, price, date) VALUES (%s, %s, %s);", (item_id, item['price'], date))
+        self.connection.commit()
+        self.close_connection()
