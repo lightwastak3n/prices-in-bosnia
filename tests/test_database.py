@@ -27,6 +27,8 @@ def delete_tables(get_server):
             cursor.execute("DROP TABLE flats;")
             cursor.execute("DROP TABLE houses;")
             cursor.execute("DROP TABLE rs_links;")
+            cursor.execute("DROP TABLE item_prices;")
+            cursor.execute("DROP TABLE items;")
     get_server.connection.close()
 
 
@@ -51,7 +53,7 @@ def test_tables_in_db(get_server):
         tables = []
         for item in result:
             tables.append(item[0])
-    test_tables = ["links_cars", "cars", "rs_links", "land", "flats", "houses"]
+    test_tables = ["links_cars", "cars", "rs_links", "land", "flats", "houses", "items", "item_prices"]
     get_server.connection.close()
     assert all([table in tables for table in test_tables]) == True
 

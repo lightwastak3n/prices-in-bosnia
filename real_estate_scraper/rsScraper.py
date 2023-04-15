@@ -160,8 +160,6 @@ class RealEstateScraper:
 
         # FFS olx what the fuck is with these random properties
         # Deleting al these 
-        if "Datum objave" in data:
-            del data["Datum objave"]
         if "Vrsta opreme" in data:
             del data["Vrsta opreme"]
         if "Ime i broj licence agenta" in data:
@@ -172,6 +170,18 @@ class RealEstateScraper:
         # Delete stanje for land
         if rs_type == 'Zemljiste' and 'Stanje' in data:
             del data['Stanje']
+
+        # Get the date of ad posting and ad renewal
+        pattern = r'date:(\d+),sku_number:[a-z],created_at:(\w+)}'
+        dates = re.findall(pattern, rs_soup.prettify())
+        if len(dates[0]) > 1:
+            data["Obnovljen"] = datetime.fromtimestamp(int(dates[0][0])).strftime('%Y-%m-%d')
+            # Fix created_at being a character
+            if dates[0][1].isdigit():
+                data["Datum objave"] = datetime.fromtimestamp(int(dates[0][1])).strftime('%Y-%m-%d')
+            else:
+                data["Datum objave"] = data["Obnovljen"]
+
 
         return data
 

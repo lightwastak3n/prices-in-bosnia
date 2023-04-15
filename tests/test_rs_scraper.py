@@ -43,6 +43,9 @@ def scrape_item(item_id, item_html_name, rs_type):
     for name in new_listing.data:
         if isinstance(new_listing.data[name], str) and new_listing.data[name].isdigit():
             new_listing.data[name] = int(new_listing.data[name])
+    # Fix todays date
+    new_listing.data["datum"] = test_item_data["datum"]
+
     return new_listing, test_item_data
 
 

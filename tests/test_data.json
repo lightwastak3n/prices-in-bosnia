@@ -349,7 +349,8 @@
         "komunalni_prikljucak": 1,
         "prilaz": "Asfalt",
         "kompanija": 0,
-        "datum_objave": "2023-02-26"
+        "datum_objave": "2019-10-26",
+        "obnovljen": "2023-02-26"
     },
     "flat1": {
         "id": 48894962,
@@ -386,7 +387,8 @@
         "ostava": 1,
         "alarm": 1,
         "kompanija": 1,
-        "datum_objave": "2023-02-27"
+        "datum_objave": "2022-07-18",
+        "obnovljen": "2023-02-27"
     },
     "house1": {
         "id": 51868032,
@@ -420,6 +422,7 @@
         "nedavno_adaptirana": 1,
         "telefon": 1,
         "kompanija": 0,
-        "datum_objave": "2023-02-26"
+        "datum_objave": "2023-02-26",
+        "obnovljen": "2023-02-26"
     }
 }

@@ -323,27 +323,24 @@ class Server:
         Creates a table that stores items from stores.
         """
         with self.connection.cursor() as cursor:
-            cursor.execute('''
-            CREATE TABLE IF NOT EXISTS items (
-                id INTEGER AUTO_INCREMENT PRIMARY KEY,
+            cursor.execute('''CREATE TABLE items 
+                (id INTEGER AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
                 type VARCHAR(255) NOT NULL,
                 unit VARCHAR(255) NOT NULL,
-                store VARCHAR(255) NOT NULL,
-            );
-            ''')
+                store VARCHAR(255) NOT NULL);''')
     
     def create_table_item_prices(self):
+        """
+        Creates a table that stores historical prices of items.
+        """
         with self.connection.cursor() as cursor:
-            cursor.execute('''
-            CREATE TABLE IF NOT EXISTS item_prices (
-                id INTEGER AUTO_INCREMENT PRIMARY KEY,
+            cursor.execute('''CREATE TABLE item_prices 
+                (id INTEGER AUTO_INCREMENT PRIMARY KEY,
                 item_id INTEGER NOT NULL,
                 price REAL NOT NULL,
                 date DATE NOT NULL,
-                FOREIGN KEY (item_id) REFERENCES items (id)
-            );
-            ''')
+                FOREIGN KEY (item_id) REFERENCES items (id));''')
 
     def database_setup(self):
         """
@@ -358,6 +355,9 @@ class Server:
         self.create_table_houses()
         self.create_table_flats()
         self.create_table_land()
+
+        self.create_table_items()
+        self.create_table_item_prices()
 
         self.close_connection()
 
