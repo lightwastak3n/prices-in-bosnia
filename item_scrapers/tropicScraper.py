@@ -35,12 +35,12 @@ class TropicScraper:
             print("Getting html for", item_type)
             html = requests.get(self.category_links[item_type], headers=headers).content
             self.htmls[item_type].append(html)
-            page_limit = 6 if item_type != "meat" else 5
+            page_limit = 6 if item_type != "meat" else 4
             for page_number in range(2, page_limit):
-                sleep(randint(100, 200))
+                sleep(randint(45, 60))
                 html = requests.get(get_nth_page(page_number, self.category_links[item_type])).content
                 self.htmls[item_type].append(html)
-            sleep(randint(100, 200))
+            sleep(randint(45, 60))
             
     def scrape_items(self):
         for item_type in self.htmls:

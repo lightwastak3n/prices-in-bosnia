@@ -1,6 +1,6 @@
 from notifier.notifier import send_ntfy
 
-from tropic_scrape.tropicScraper import TropicScraper
+from item_scrapers.tropicScraper import TropicScraper
 from db_server.sql_server import Server
 
 
