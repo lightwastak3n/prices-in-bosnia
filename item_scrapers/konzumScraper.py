@@ -21,11 +21,6 @@ class KonzumScraper(TropicScraper):
             "personal hygiene": "https://www.konzumshop.ba/#!/categories/5471644/higijenski-i-papirnati-proizvodi?show=all&sort_field=soldStatistics&sort=soldStatisticsDesc&page=1&per_page=200",
     }
 
-    prop_classes = {
-        "name": "ng-binding"
-    }
-
-
     def __init__(self):
         super().__init__()
 
@@ -91,7 +86,7 @@ class KonzumScraper(TropicScraper):
                     if unit == "ko":
                         unit = "unit"
                     item = {
-                        'name': name,
+                        'name': self.fix_serbian_letters(name),
                         'price': float(price),
                         'unit': unit,
                         'type': item_type

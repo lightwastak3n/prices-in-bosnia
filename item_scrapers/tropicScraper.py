@@ -16,7 +16,7 @@ class TropicScraper:
     "basic groceries": "https://eshop.tropic.ba/product-category/osnovne-zivotne-namirnice/?orderby=popularity"
     }
 
-    div_classes = {
+    prop_classes = {
         "link": "woocommerce-LoopProduct-link woocommerce-loop-product__link",
         "name": "woocommerce-loop-product__title",
         "unit": "woocommerce-Price-currencySymbol amount mcmp-recalc-price-suffix",
@@ -41,7 +41,20 @@ class TropicScraper:
                 html = requests.get(get_nth_page(page_number, self.category_links[item_type])).content
                 self.htmls[item_type].append(html)
             sleep(randint(45, 60))
-            
+
+    def fix_serbian_letters(self, text):
+        latin_chars = {
+            "š": "s",
+            "đ": "dj",
+            "č": "c",
+            "ć": "c",
+            "ž": "z"
+        }
+        for char in text:
+            if char in latin_chars:
+                text = text.replace(char, latin_chars[char])
+        return text
+
     def scrape_items(self):
         for item_type in self.htmls:
             print("Scraping", item_type)
@@ -49,20 +62,20 @@ class TropicScraper:
                 soup = BeautifulSoup(html, 'html.parser')
 
                 # Find all links with the specified class
-                links = soup.find_all('a', class_=self.div_classes['link'])
+                links = soup.find_all('a', class_=self.prop_classes['link'])
 
                 for item in links:
                     # Find the item name, price, and unit within each link
-                    name = item.find('h2', class_=self.div_classes['name']).text.strip().lower()
-                    price = item.find('span', class_=self.div_classes['price']).find('bdi').text.strip("KM")
-                    if item.find('span', class_=self.div_classes['unit']) is None:
+                    name = item.find('h2', class_=self.prop_classes['name']).text.strip().lower()
+                    price = item.find('span', class_=self.prop_classes['price']).find('bdi').text.strip("KM")
+                    if item.find('span', class_=self.prop_classes['unit']) is None:
                         unit = "unit"
                     else:
-                        unit = item.find('span', class_=self.div_classes['unit']).text.strip("/")
+                        unit = item.find('span', class_=self.prop_classes['unit']).text.strip("/").lower()
 
                     # Store the extracted data in a dictionary
                     item = {
-                        'name': name,
+                        'name': self.fix_serbian_letters(name.strip()),
                         'price': float(price),
                         'unit': unit,
                         'type': item_type
@@ -83,6 +96,6 @@ class TropicScraper:
         if not new_items:
             print("No new items")
         else:
-            server.insert_items(new_items, "tropic")
-        server.insert_item_prices(self.items, "tropic", today)
+            server.insert_items(new_items, store)
+        server.insert_item_prices(self.items, store, today)
         return len(new_items), len(self.items)
