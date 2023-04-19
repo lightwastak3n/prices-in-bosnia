@@ -9,5 +9,5 @@ scraper = TropicScraper()
 
 scraper.get_html()
 scraper.scrape_items()
-new_items, items_inserted = scraper.add_items_to_database(server)
+new_items, items_inserted = scraper.add_items_to_database(server, "tropic")
 send_ntfy(msg=f"Found {new_items} new items. {items_inserted} items scraped.", title="Tropic scraper", tags=["shopping_cart"])

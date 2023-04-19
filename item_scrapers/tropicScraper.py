@@ -70,7 +70,7 @@ class TropicScraper:
 
                     self.items.append(item)
 
-    def add_items_to_database(self, server):
+    def add_items_to_database(self, server, store):
         """
         Add new items to the items table in the database
         
@@ -79,7 +79,7 @@ class TropicScraper:
         """
         print("Adding items to database")
         today = date.today()
-        new_items = server.check_if_items_exist(self.items, "tropic")
+        new_items = server.check_if_items_exist(self.items, store)
         if not new_items:
             print("No new items")
         else:
