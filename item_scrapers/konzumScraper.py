@@ -1,4 +1,4 @@
-from tropicScraper import TropicScraper
+from item_scrapers.tropicScraper import TropicScraper
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -13,16 +13,17 @@ from random import randint
 
 class KonzumScraper(TropicScraper):
     category_links = {
-            "meat": "https://www.konzumshop.ba/#!/categories/5471538/meso?show=all&sort_field=soldStatistics&sort=soldStatisticsDesc&page=1&per_page=200",
-            "bakery products": "https://www.konzumshop.ba/#!/categories/5471486/pekarski-proizvodi?show=all&sort_field=soldStatistics&sort=soldStatisticsDesc&page=1&per_page=200",
-            "fruits and vegetables": "https://www.konzumshop.ba/#!/categories/5471582/svjeze-voce-i-povrce?show=all&sort_field=soldStatistics&sort=soldStatisticsDesc&page=1&per_page=200",
-            "dairy and eggs": "https://www.konzumshop.ba/#!/categories/5471171/mlijecni-jaja-i-sir?show=all&sort_field=soldStatistics&sort=soldStatisticsDesc&page=1&per_page=200",
-            "household supplies": "https://www.konzumshop.ba/#!/categories/5471675/kucanske-potrepstine?show=all&sort_field=soldStatistics&sort=soldStatisticsDesc&page=1&per_page=200",
-            "personal hygiene": "https://www.konzumshop.ba/#!/categories/5471644/higijenski-i-papirnati-proizvodi?show=all&sort_field=soldStatistics&sort=soldStatisticsDesc&page=1&per_page=200",
+        "meat": "https://www.konzumshop.ba/#!/categories/5471538/meso?show=all&sort_field=soldStatistics&sort=soldStatisticsDesc&page=1&per_page=200",
+        "bakery products": "https://www.konzumshop.ba/#!/categories/5471486/pekarski-proizvodi?show=all&sort_field=soldStatistics&sort=soldStatisticsDesc&page=1&per_page=200",
+        "fruits and vegetables": "https://www.konzumshop.ba/#!/categories/5471582/svjeze-voce-i-povrce?show=all&sort_field=soldStatistics&sort=soldStatisticsDesc&page=1&per_page=200",
+        "dairy and eggs": "https://www.konzumshop.ba/#!/categories/5471171/mlijecni-jaja-i-sir?show=all&sort_field=soldStatistics&sort=soldStatisticsDesc&page=1&per_page=200",
+        "household supplies": "https://www.konzumshop.ba/#!/categories/5471675/kucanske-potrepstine?show=all&sort_field=soldStatistics&sort=soldStatisticsDesc&page=1&per_page=200",
+        "personal hygiene": "https://www.konzumshop.ba/#!/categories/5471644/higijenski-i-papirnati-proizvodi?show=all&sort_field=soldStatistics&sort=soldStatisticsDesc&page=1&per_page=200",
     }
 
     def __init__(self):
-        super().__init__()
+        self.items = []
+        self.html = {}
 
     def get_webpage_source(self, url):
         # Configure the Chrome options
@@ -46,18 +47,15 @@ class KonzumScraper(TropicScraper):
         driver.quit()
         return page_source
 
-    def get_html(self):
-        for item_type in self.category_links:
-            print("Getting html for", item_type)
-            html = self.get_webpage_source(self.category_links[item_type])
-            self.htmls[item_type].append(html)
-            sleep(randint(45, 60))
+    def get_html(self, url, category):
+        self.html[category] = self.get_webpage_source(url)
+        sleep(randint(10,20))
     
     def scrape_items(self):
-        for item_type in self.htmls:
+        for item_type in self.html:
             print("Scraping", item_type)
             # Parse the webpage source using BeautifulSoup
-            soup = BeautifulSoup(self.htmls[item_type][0], 'html.parser')
+            soup = BeautifulSoup(self.html[item_type], 'html.parser')
             
             items = soup.find_all('div', class_='ng-scope')
             # Iterate over the items and extract the required properties
@@ -80,19 +78,16 @@ class KonzumScraper(TropicScraper):
                 if alternative_price_tag:
                     del_tag = alternative_price_tag.find('del', class_='ng-binding')
                     if del_tag:
-                        price = del_tag.get_text().split(' KM')[0].replace(',', '.')
+                        price = float(del_tag.get_text().split(' KM')[0].replace(',', '.'))
                         unit = del_tag.get_text().split('/')[1].strip().lower()
                 if name != None:
                     if unit == "ko":
                         unit = "unit"
                     item = {
                         'name': self.fix_serbian_letters(name),
-                        'price': float(price),
+                        'price': price,
                         'unit': unit,
                         'type': item_type
                     }
                     self.items.append(item)
-
-
-
-
+        self.html.clear()

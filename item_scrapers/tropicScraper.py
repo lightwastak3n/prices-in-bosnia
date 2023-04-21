@@ -50,10 +50,8 @@ class TropicScraper:
             "ć": "c",
             "ž": "z"
         }
-        for char in text:
-            if char in latin_chars:
-                text = text.replace(char, latin_chars[char])
-        return text
+        text = text.strip()
+        return ''.join(latin_chars.get(char, char) for char in text)
 
     def scrape_items(self):
         for item_type in self.htmls:
