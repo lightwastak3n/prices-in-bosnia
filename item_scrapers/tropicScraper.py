@@ -37,10 +37,10 @@ class TropicScraper:
             self.htmls[item_type].append(html)
             page_limit = 6 if item_type != "meat" else 4
             for page_number in range(2, page_limit):
-                sleep(randint(45, 60))
+                sleep(randint(100, 200))
                 html = requests.get(get_nth_page(page_number, self.category_links[item_type])).content
                 self.htmls[item_type].append(html)
-            sleep(randint(45, 60))
+            sleep(randint(100, 200))
 
     def fix_serbian_letters(self, text):
         latin_chars = {

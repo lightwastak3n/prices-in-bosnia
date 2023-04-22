@@ -643,6 +643,29 @@ class Server:
         self.close_connection()
         return f"Cars scraped {total_cars}. Left to scrape {non_scraped_cars}.\nRs scraped {total_rs}. Left to scrape {non_scraped_rs}."
 
+    def count_item_prices_for_store(self, store):
+        """
+        Counts the number of prices for a given store.
+
+        Args:
+            store (str): The name of the store to count the prices for.
+
+        Returns:
+            result (int): The number of prices for the given store.
+        """
+        query = f"""
+            SELECT COUNT(*) AS num_records
+            FROM items
+            JOIN item_prices ON items.id = item_prices.item_id
+            WHERE items.store = '{store}';
+        """        
+        self.create_connection()
+        with self.connection.cursor() as cursor:
+            cursor.execute(query)
+            result = cursor.fetchone()
+        self.close_connection()
+        return result[0]
+
     def get_cars_basic_info(self):
         self.create_connection()
         with self.connection.cursor() as cursor:
