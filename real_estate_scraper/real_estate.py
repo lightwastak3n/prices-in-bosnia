@@ -93,7 +93,7 @@ class RealEstate:
 
     def fix_namjesten(self):
         if self.type == "Stan":
-            namjesten_mapping = {"Namješten": 2, "Nenamješten": 0, "Polunamješten": 1}
+            namjesten_mapping = {"Namješten": 2, "Nenamješten": 0, "Polunamješten": 1, "Namje&scaron;ten": 2}
             if "namjesten" in self.data:
                 self.data["namjesten"] = namjesten_mapping[self.data["namjesten"]]
 
