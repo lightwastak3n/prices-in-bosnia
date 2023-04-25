@@ -1,6 +1,7 @@
 import mysql.connector
 import json
 import os
+import datetime
 
 from mysql.connector import Error
 
@@ -738,3 +739,22 @@ class Server:
 
         self.connection.commit()
         self.close_connection()
+
+    def get_records_on_date(self, table, date):
+        """
+        Gets all records from a given table on a given date.
+
+        Args:
+            table (str): The name of the table to get the records from.
+
+        Returns:
+            result (list): A list of dictionaries containing the records from the given table.
+        """
+        self.create_connection()
+        date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+        with self.connection.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM {table} WHERE price={date};")
+            result = cursor.fetchall()
+        self.close_connection()
+        return result
+
