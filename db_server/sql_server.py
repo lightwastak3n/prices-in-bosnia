@@ -740,7 +740,7 @@ class Server:
         self.connection.commit()
         self.close_connection()
 
-    def get_records_on_date(self, table, date):
+    def get_records_on_date(self, table, date_column, date):
         """
         Gets all records from a given table on a given date.
 
@@ -753,8 +753,7 @@ class Server:
         self.create_connection()
         date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
         with self.connection.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM {table} WHERE price={date};")
+            cursor.execute(f"SELECT * FROM {table} WHERE {date_column}=%s;", (date,))
             result = cursor.fetchall()
         self.close_connection()
         return result
-
