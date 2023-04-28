@@ -13,6 +13,7 @@ def send_ntfy(msg):
     headers = {"Title":"Scraper crashed", "Tags": "warning, car"}
     url = "https://ntfy.sh/VSNyDS35BgEi"
     requests.post(url=url, data=msg, headers=headers)
+    sleep(10)
 
 server = Server()
 real_estate_scraper = RealEstateScraper()
@@ -60,31 +61,18 @@ while True:
             rs_link = item[1]
             rs_type = item[2]
             print(f"Scraping {rs_link}.")
-            try:
-                data = real_estate_scraper.scrape_real_estate(rs_id, rs_link, rs_type, write_log_info)
-                if data:
-                    new_rs = RealEstate(data, rs_type)
-                    server.insert_rs_data(rs_type, new_rs.data, write_log_info, write_log_error)
-            except Exception as e:
-                print(f"{e}. Invalid listing. {rs_link}")
-                send_ntfy(str(f"Invalid listing\n{e}\n{rs_link}"))
-                write_log_error(f"{e}. Invalid listing. {rs_link}")
-                if data:
-                    write_log_info(data)
-                    print(data)
-                    send_ntfy(data)
-                else:
-                    print("No data scraped for", rs_link)
-                    write_log_info(f"No data scraped for {rs_link}")
-            finally:
-                server.mark_as_scraped("rs_links", rs_id)
+            data = real_estate_scraper.scrape_real_estate(rs_id, rs_link, rs_type, write_log_info)
+            if data:
+                new_rs = RealEstate(data, rs_type)
+                server.insert_rs_data(rs_type, new_rs.data, write_log_info, write_log_error)
+                print(f"Rs {rs_id} scraped and inserted into the database.")
+            server.mark_as_scraped("rs_links", rs_id)
         print(f"Rs scraped. Waiting for {time_left} seconds.")
     except Exception as e:
-        print(e, rs_link)
-        send_ntfy(str(f"{e} - {rs_link}"))
+        print(e)
+        send_ntfy(str(f"{e}"))
         write_log_error(f"{e}.")
     else:
         sleep(time_left)
     finally:
         sleep(randint(30, 40))
-
