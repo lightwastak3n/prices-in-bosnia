@@ -61,9 +61,6 @@ while True:
     except Exception as e:
         send_ntfy(str(e))
         write_log_error(f"{e}.")
-        server.mark_as_scraped("links_cars", car_id)
-        if data:
-            write_log_info(data)
     else:
         sleep(time_left)
     finally:
