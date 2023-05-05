@@ -60,3 +60,19 @@ def test_car_scrape():
             if isinstance(new_car.data[name], str) and new_car.data[name].isdigit():
                 new_car.data[name] = int(new_car.data[name])
         assert new_car.data == test_car_data
+
+def test_empty_listing():
+    scraper = CarScraper()
+    url = "https://olx.ba/artikal/00000"
+    car_soup = scraper.get_soup(url)
+    car_id = url.split("/")[-1]
+    car_data = scraper.get_car_specs(car_soup, car_id)
+    assert car_data is None
+
+def test_car_missing_price():
+    scraper = CarScraper()
+    url = "https://olx.ba/artikal/53101806/peugeot-206"
+    car_soup = scraper.get_soup(url)
+    car_id = url.split("/")[-1]
+    car_data = scraper.get_car_specs(car_soup, car_id)
+    assert car_data is None

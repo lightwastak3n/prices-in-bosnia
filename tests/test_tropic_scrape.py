@@ -1,6 +1,6 @@
 import json
 
-from tropic_scrape.tropicScraper import TropicScraper
+from item_scrapers.tropicScraper import TropicScraper
 
 
 

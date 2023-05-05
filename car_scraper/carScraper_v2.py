@@ -100,11 +100,19 @@ class CarScraper:
         Returns:
             data: dictionary with found car data
         """
+        # Check for empty listing
+        missing_page = car_soup.find("h1")
+        if missing_page and "Oprostite" in missing_page.text:
+            return None
+ 
         name = car_soup.find("h2")
         name = name.text.strip()
         data = {"id": car_id, "Ime": name, "datum": f"{date.today()}"}
 
         price_span = car_soup.find("span", {"class": "price-heading vat"})
+        if price_span.text == "Na upit":
+            return None
+
         data["Cijena"] = price_span.text
 
         # Extracting table data

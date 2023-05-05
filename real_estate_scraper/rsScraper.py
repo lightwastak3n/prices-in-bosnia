@@ -117,6 +117,11 @@ class RealEstateScraper:
         Returns:
             data: dictionary of properties and values found on a given listing
         """
+        # Check for empty listing
+        missing_page = rs_soup.find("h1")
+        if missing_page and "Oprostite" in missing_page.text:
+            return None
+                
         name = rs_soup.find("h2")
         name = name.text.strip()
         data = {"id": rs_id, "Ime": name, "datum": f"{date.today()}"}
