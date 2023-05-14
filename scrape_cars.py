@@ -40,7 +40,7 @@ while True:
         else:
             allocated_time = randint(1000, 1200)
 
-        pause_between_cars = randint(20,40)
+        pause_between_cars = randint(10,20)
         possible_fit = min(allocated_time // pause_between_cars, len(not_scraped))
         time_left = max(allocated_time - total_not_scraped * pause_between_cars, 0)
 
@@ -52,16 +52,21 @@ while True:
             car_link = car[1]
             print(f"Scraping {car_link}.")
             data = car_scraper.scrape_car(car_id, car_link, write_log_info)
+            print("Got data")
             if data:
                 new_car = Car(data)
                 server.insert_car_data(new_car.data, write_log_info, write_log_error)
                 print(f"Car {car_id} scraped.")
+            else:
+                print(f"Car {car_id} not scraped marking as scraped.")
             server.mark_as_scraped("links_cars", car_id)
         print(f"Cars scraped. Waiting for {time_left} seconds.")
     except Exception as e:
-        send_ntfy(str(e))
+        print(f"Got exception - {e}")
         write_log_error(f"{e}.")
     else:
+        print("Car scraper in else.")
         sleep(time_left)
     finally:
+        print("Car scraper in finally.")
         sleep(randint(20, 30))

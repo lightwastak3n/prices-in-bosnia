@@ -12,12 +12,20 @@ class Car:
         Initializes Car object and cleans the data.
         """
         self.data = data
+        self.remove_automobil()
         self.rename_columns()
         self.fix_basic_data()
         self.fix_year()
         self.fix_power()
         self.fix_first_registration()
         self.fix_radio_columns()
+        
+    def remove_automobil(self):
+        """
+        Removes the 'Automobil' key from self.data.
+        """
+        if "Automobil" in self.data:
+            del self.data["Automobil"]
 
     def rename_columns(self):
         """

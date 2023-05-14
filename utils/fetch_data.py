@@ -1,5 +1,5 @@
 import csv
-from ..db_server.sql_server import Server
+from db_server.sql_server import Server
 
 
 def write_csv(data, filename):
