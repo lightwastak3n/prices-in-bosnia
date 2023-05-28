@@ -37,7 +37,7 @@ class TropicScraper:
             self.htmls[item_type].append(html)
             page_limit = 6 if item_type != "meat" else 4
             for page_number in range(2, page_limit):
-                sleep(randint(100, 150))
+                sleep(randint(30, 40))
                 html = requests.get(get_nth_page(page_number, self.category_links[item_type])).content
                 self.htmls[item_type].append(html)
             sleep(randint(100, 150))

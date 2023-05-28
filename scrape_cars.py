@@ -58,7 +58,7 @@ while True:
                 server.insert_car_data(new_car.data, write_log_info, write_log_error)
                 print(f"Car {car_id} scraped.")
             else:
-                print(f"Car {car_id} not scraped marking as scraped.")
+                print(f"Car {car_id} not scraped, skipping and marking as scraped.")
             server.mark_as_scraped("links_cars", car_id)
         print(f"Cars scraped. Waiting for {time_left} seconds.")
     except Exception as e:

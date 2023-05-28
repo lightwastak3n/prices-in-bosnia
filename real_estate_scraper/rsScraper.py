@@ -1,5 +1,7 @@
 import requests
 import re
+import json
+import js2py
 
 from time import sleep
 from random import randint
@@ -129,8 +131,19 @@ class RealEstateScraper:
         price_span = rs_soup.find("span", {"class": "price-heading vat"})
         data["Cijena"] = price_span.text
 
+        # Find NUXT script
+        all_scripts = rs_soup.findAll("script")
+        for script in all_scripts:
+            if script.contents and "window.__NUXT__" in script.contents[0][:50]:
+                target_script = script.contents[0]
+                output = js2py.eval_js(target_script)
+                print(output())
+
+
         # Extracting table data
-        rows = rs_soup.find_all('tr', {'data-v-fffe36e4': ''})
+        rows = rs_soup.find_all('tr', {'data-v-5d38ee02': ''})
+        print("Found second table rows")
+        print(rows)
         for row in rows:
             name = row.find_all('td')[0].get_text().strip()
             value = row.find_all('td')[1].get_text().strip()
@@ -177,16 +190,17 @@ class RealEstateScraper:
             del data['Stanje']
 
         # Get the date of ad posting and ad renewal
-        pattern = r'date:(\d+),sku_number:[a-z],created_at:(\w+)}'
+        pattern = r'date:(\w+),sku_number:[a-z],created_at:(\w+)}'
         dates = re.findall(pattern, rs_soup.prettify())
-        if len(dates[0]) > 1:
-            data["Obnovljen"] = datetime.fromtimestamp(int(dates[0][0])).strftime('%Y-%m-%d')
+        if dates and len(dates[0]) > 1:
+            if dates[0][0].isdigit():
+                data["Obnovljen"] = datetime.fromtimestamp(int(dates[0][0])).strftime('%Y-%m-%d')
             # Fix created_at being a character
             if dates[0][1].isdigit():
                 data["Datum objave"] = datetime.fromtimestamp(int(dates[0][1])).strftime('%Y-%m-%d')
-            else:
+            elif dates[0][0].isdigit():
                 data["Datum objave"] = data["Obnovljen"]
-
+        print("Added dates")
 
         return data
 

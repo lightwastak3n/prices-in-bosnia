@@ -23,6 +23,7 @@ class RealEstate:
         self.fix_namjesten()
 
         self.fix_radio_columns()
+        self.fix_serbian_letters()
 
     def rename_columns(self):
         """
@@ -109,3 +110,19 @@ class RealEstate:
                     self.data[col] = 1
                 elif self.data[col] == "Ne":
                     self.data[col] = 0
+
+    def fix_serbian_letters(self):
+        """Remove lettes š, đ, č, ć, ž from the values in data"""
+        latin_chars = {
+            "š": "s",
+            "đ": "dj",
+            "č": "c",
+            "ć": "c",
+            "ž": "z"
+        }
+        # Add capital letters also
+        latin_chars.update({key.upper(): value.upper() for key, value in latin_chars.items()})
+        latin_chars["Đ"] = "Dj"
+        for key in self.data:
+            if isinstance(self.data[key], str):
+                self.data[key] = ''.join(latin_chars.get(char, char) for char in self.data[key])

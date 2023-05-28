@@ -103,20 +103,19 @@ class CarScraper:
         # Check for empty listing
         missing_page = car_soup.find("h1")
         if missing_page and "Oprostite" in missing_page.text:
+            print("Empty page returning None")
             return None
-        print("Checked for missing")
 
         name = car_soup.find("h2")
         name = name.text.strip()
         data = {"id": car_id, "Ime": name, "datum": f"{date.today()}"}
-        print("Added name, id, date")
 
         price_span = car_soup.find("span", {"class": "price-heading vat"})
         if price_span.text == "Na upit":
             print("No price returning None")
             return None
         data["Cijena"] = price_span.text
-        print("Added price")
+        print("Checked for missing. Added name, id, date, price")
 
         # Extracting table data
         rows = car_soup.find_all('tr', {'data-v-fffe36e4': ''})
@@ -149,15 +148,15 @@ class CarScraper:
         print("Added seller type")
 
         # Get the date of ad posting and ad renewal
-        pattern = r'},date:(\d+),sku_number:([a-z]|"[A-Za-z\s]+"),created_at:(\w+)}'
-
+        pattern = r',date:(\w+),sku_number:([a-z]|"[A-Za-z\s]+"),created_at:(\w+)}'
         dates = re.findall(pattern, car_soup.prettify())
         if len(dates[0]) > 1:
-            data["Obnovljen"] = datetime.fromtimestamp(int(dates[0][0])).strftime('%Y-%m-%d')
+            if dates[0][0].isdigit():
+                data["Obnovljen"] = datetime.fromtimestamp(int(dates[0][0])).strftime('%Y-%m-%d')
             # Fix created_at being a character
             if dates[0][1].isdigit():
                 data["Datum objave"] = datetime.fromtimestamp(int(dates[0][1])).strftime('%Y-%m-%d')
-            else:
+            elif dates[0][0].isdigit():
                 data["Datum objave"] = data["Obnovljen"]
         print("Added dates")
 

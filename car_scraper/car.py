@@ -12,20 +12,24 @@ class Car:
         Initializes Car object and cleans the data.
         """
         self.data = data
-        self.remove_automobil()
+        self.clean_dict_keys()
         self.rename_columns()
         self.fix_basic_data()
         self.fix_year()
         self.fix_power()
         self.fix_first_registration()
         self.fix_radio_columns()
+        self.fix_serbian_letters()
         
-    def remove_automobil(self):
+    def clean_dict_keys(self):
         """
-        Removes the 'Automobil' key from self.data.
+        Removes the keys that arent present in specs_columns_mapping
         """
-        if "Automobil" in self.data:
-            del self.data["Automobil"]
+        clean_data = {}
+        for key in self.data:
+            if key in specs_columns_mapping:
+                clean_data[key] = self.data[key]
+        self.data = clean_data
 
     def rename_columns(self):
         """
@@ -34,7 +38,10 @@ class Car:
         """
         new_data = {}
         for spec in self.data:
-            new_data[specs_columns_mapping[spec]] = self.data[spec]
+            if spec in specs_columns_mapping:
+                new_data[specs_columns_mapping[spec]] = self.data[spec]
+            else:
+                del self.data[spec]
         self.data = new_data
 
     def fix_basic_data(self):
@@ -98,3 +105,19 @@ class Car:
                     self.data[col] = 1
                 elif self.data[col] == "Ne":
                     self.data[col] = 0
+
+    def fix_serbian_letters(self):
+        """Remove lettes š, đ, č, ć, ž from the values in data"""
+        latin_chars = {
+            "š": "s",
+            "đ": "dj",
+            "č": "c",
+            "ć": "c",
+            "ž": "z"
+        }
+        # Add capital letters also
+        latin_chars.update({key.upper(): value.upper() for key, value in latin_chars.items()})
+        latin_chars["Đ"] = "Dj"
+        for key in self.data:
+            if isinstance(self.data[key], str):
+                self.data[key] = ''.join(latin_chars.get(char, char) for char in self.data[key])
