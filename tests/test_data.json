@@ -337,9 +337,11 @@
         "id": 53070662,
         "ime": "Zemljiste Rakovica, Ilidza 900m2",
         "datum": "2023-05-28",
+        "broj_pregleda": 1412,
         "cijena": 49000,
         "kvadrata": 900,
         "lokacija": "Ilidza",
+        "stanje": "koristeno",
         "lat": 43.8799,
         "lng": 18.1953,
         "vrsta_oglasa": "Prodaja",
@@ -349,15 +351,18 @@
         "prilaz": "Asfalt",
         "kompanija": 0,
         "datum_objave": "2023-05-03",
-        "obnovljen": "2023-05-28"
+        "obnovljen": "2023-05-28",
+        "gradjevinska_dozvola": 0,
+        "iznajmljeno": 0
     },
     "flat1": {
         "id": 48894962,
         "ime": "Ilidza / Stan / 55,45m2 / NOVOGRADNJA",
         "datum": "2023-02-27",
+        "broj_pregleda": 190,
         "cijena": 205000,
         "kvadrata": 55,
-        "stanje": "Novo",
+        "stanje": "novo",
         "lokacija": "Ilidza",
         "adresa": "Blazujski drum",
         "godina_izgradnje": "Novogradnja",
@@ -392,10 +397,11 @@
     "house1": {
         "id": 51868032,
         "ime": "Kuca sa dvoristem Laktasi",
-        "datum": "2023-02-27",
+        "datum": "2023-14-03",
         "cijena": 155000,
         "kvadrata": 200,
-        "stanje": "Koristeno",
+        "stanje": "koristeno",
+        "broj_pregleda": 795,
         "lokacija": "Laktasi",
         "lat": 44.9075,
         "lng": 17.303,
@@ -421,8 +427,8 @@
         "nedavno_adaptirana": 1,
         "telefon": 1,
         "kompanija": 0,
-        "datum_objave": "2023-02-26",
-        "obnovljen": "2023-02-26"
+        "datum_objave": "2023-02-18",
+        "obnovljen": "2023-03-14"
     },
     "tropic_fruits_and_vegetables": {
         "banana": [2.99, "kg"],

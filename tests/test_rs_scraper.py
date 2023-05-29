@@ -69,18 +69,14 @@ def test_main_page_scrape():
 
 def test_land_scrape():
     new_land, test_land_data = scrape_item(53070662, "land1", "Zemljiste")
-    print("new land data")
-    print(new_land.data)
-    print("test land data")
-    print(test_land_data)
     assert new_land.data == test_land_data
 
 
-# def test_flat_scrape():
-#     new_flat, test_flat_data = scrape_item(48894962, "flat1", "Stan")
-#     assert new_flat.data == test_flat_data
+def test_flat_scrape():
+    new_flat, test_flat_data = scrape_item(48894962, "flat1", "Stan")
+    assert new_flat.data == test_flat_data
 
 
-# def test_house_scrape():
-#     new_house, test_house_data = scrape_item(51868032, "house1", "Kuca")
-#     assert new_house.data == test_house_data
+def test_house_scrape():
+    new_house, test_house_data = scrape_item(51868032, "house1", "Kuca")
+    assert new_house.data == test_house_data

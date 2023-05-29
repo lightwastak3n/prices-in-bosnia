@@ -75,7 +75,7 @@ class RealEstateScraper:
             for id in listings_ids:
                 self.real_estates[rs_type][id[:-1]] = f"https://olx.ba/artikal/{id[:-1]}/"
 
-    def filter_new_real_estates(self, server) -> int:
+    def filter_new_real_estates(self, server) -> tuple:
         """
         Checks id of each real estate found against the ids already present in the database.
 
@@ -131,77 +131,66 @@ class RealEstateScraper:
         price_span = rs_soup.find("span", {"class": "price-heading vat"})
         data["Cijena"] = price_span.text
 
-        # Find NUXT script
+        # Run window.__NUXT__ function and get the data
         all_scripts = rs_soup.findAll("script")
         for script in all_scripts:
             if script.contents and "window.__NUXT__" in script.contents[0][:50]:
+                print("Finding script")
                 target_script = script.contents[0]
+                target_script = target_script.replace("new Map([])", "[]")
                 output = js2py.eval_js(target_script)
-                print(output())
+                output = str(output)
+                output = output.replace("None", "null").replace("False", "false").replace("True", "true").replace("'", '"').replace("\\", "")
+                pattern = r'"description":\s*".*?"\s*,\s*"updated_at"'
+                output = re.sub(pattern, '"description": null, "updated_at"', output)
+                output = json.loads(output)
+                
+                # Table data
+                print("Getting table data")
+                for prop in output['data'][0]['listing']['attributes']:
+                    if prop['value'] == "true":
+                        prop_val = 1
+                    elif prop['value'] == "false":
+                        prop_val = 0
+                    else:
+                        prop_val = prop['value']
+                    data[prop['name']] = prop_val
 
+                # Get the location, city and coordinates
+                print("Getting location")
+                data['Lokacija'] = output['data'][0]['listing']['cities'][0]['name']
+                if 'location' in output['data'][0]['listing']:
+                    data['lat'] = round(float(output['data'][0]['listing']['location']['lat']),4)
+                    data['lng'] = round(float(output['data'][0]['listing']['location']['lon']),4)
 
-        # Extracting table data
-        rows = rs_soup.find_all('tr', {'data-v-5d38ee02': ''})
-        print("Found second table rows")
-        print(rows)
-        for row in rows:
-            name = row.find_all('td')[0].get_text().strip()
-            value = row.find_all('td')[1].get_text().strip()
-            if value == "✓":
-                value = 1
-            data[name] = value
+                # Get the type of seller
+                print("Getting seller info")
+                seller_type = output['data'][0]['listing']['user']['type']
+                shop = 1 if seller_type == "shop" else 0
+                data['kompanija'] = shop
 
-        # Get the location, condition and relative time of ad renewal
-        labels = rs_soup.find_all('label', {'class': 'btn-pill'})
-        # Mapping since not all cars have all the labels
-        label_mapping = {"M17": "Lokacija", "M7": "Stanje"}
-        for label in labels:
-            for key in label_mapping:
-                if key in str(label):
-                    # Fix for Obnovljen label included
-                    data[label_mapping[key]] = label.get_text().strip()
+                # FFS olx what the fuck is with these random properties
+                # Deleting al these 
+                print("Deleting extra columns if needed")
+                if "Vrsta opreme" in data:
+                    del data["Vrsta opreme"]
+                if "Ime i broj licence agenta" in data:
+                    del data["Ime i broj licence agenta"]
+                if "Broj posredničkog ugovora" in data:
+                    del data["Broj posredničkog ugovora"]
 
-        # Get the type of seller
-        seller_p = rs_soup.find('p', {'class': 'user-info__title pb-md'})
-        shop = 1 if seller_p.get_text().strip() == "OLX shop" else 0
-        data['kompanija'] = shop
+                # Get the number of views and all the dates
+                print("Getting views and dates")
+                data["Broj pregleda"] = output['data'][0]['listing']['views']
+                data["Datum objave"] = datetime.fromtimestamp(int(output['data'][0]['listing']['created_at'])).strftime('%Y-%m-%d')
+                if 'date' in output['data'][0]['listing']:
+                    data["Obnovljen"] = datetime.fromtimestamp(int(output['data'][0]['listing']['date'])).strftime('%Y-%m-%d')
 
-
-        # Regular expression pattern to extract latitude and longitude values
-        pattern = r"location:{lat:(\d+\.\d+),lon:(\d+\.\d+)},feedbacks"
-
-        # Find all matches of the pattern in the string and extract lat and lon from first match
-        matches = re.findall(pattern, str(rs_soup))
-        if len(matches) > 0:
-            data['lat'] = round(float(matches[0][0]), 4)
-            data['lng'] = round(float(matches[0][1]), 4)
-
-        # FFS olx what the fuck is with these random properties
-        # Deleting al these 
-        if "Vrsta opreme" in data:
-            del data["Vrsta opreme"]
-        if "Ime i broj licence agenta" in data:
-            del data["Ime i broj licence agenta"]
-        if "Broj posredničkog ugovora" in data:
-            del data["Broj posredničkog ugovora"]
-
-        # Delete stanje for land
-        if rs_type == 'Zemljiste' and 'Stanje' in data:
-            del data['Stanje']
-
-        # Get the date of ad posting and ad renewal
-        pattern = r'date:(\w+),sku_number:[a-z],created_at:(\w+)}'
-        dates = re.findall(pattern, rs_soup.prettify())
-        if dates and len(dates[0]) > 1:
-            if dates[0][0].isdigit():
-                data["Obnovljen"] = datetime.fromtimestamp(int(dates[0][0])).strftime('%Y-%m-%d')
-            # Fix created_at being a character
-            if dates[0][1].isdigit():
-                data["Datum objave"] = datetime.fromtimestamp(int(dates[0][1])).strftime('%Y-%m-%d')
-            elif dates[0][0].isdigit():
-                data["Datum objave"] = data["Obnovljen"]
-        print("Added dates")
-
+                # Get the state
+                state_map = {"used": "koristeno", "new": "novo"}
+                data["Stanje"] = state_map[output['data'][0]['listing']['state']]
+                
+        print(data) 
         return data
 
     def scrape_real_estate(self, rs_id, rs_link, rs_type, write_log_info) -> dict:
