@@ -154,8 +154,6 @@ radio_columns = [
 ]
 
 
-
-
 class RealEstate:
     """
     Represents a single real estate. It takes the data scraped by the rsScraper and then cleans it.
@@ -194,9 +192,11 @@ class RealEstate:
         """
         Fixes price, cleans the integer.
         """
-        self.data["cijena"] = self.data["cijena"].rstrip(" KM").replace(".", "")
-        if "," in self.data["cijena"]:
-            self.data["cijena"] = self.data["cijena"].split(",")[0]
+        # self.data["cijena"] = self.data["cijena"].rstrip(" KM").replace(".", "")
+        # if "," in self.data["cijena"]:
+        #     self.data["cijena"] = self.data["cijena"].split(",")[0]
+        if self.type == "Zemljiste" and "stanje" in self.data:
+            del self.data["stanje"]
         if "kvadrata" in self.data:
             self.data["kvadrata"] = self.fix_int(self.data["kvadrata"])
 

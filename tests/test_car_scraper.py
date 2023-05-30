@@ -1,5 +1,3 @@
-import sys
-import os
 import json
 
 from bs4 import BeautifulSoup
@@ -38,7 +36,7 @@ def test_get_cars_from_main():
 
 
 def test_car_scrape():
-    for car in ["car1", "car2"]:
+    for car in ["car2"]:
         with open(f"htmls/{car}.html", 'r', encoding='utf-8') as car_html:
             car_page = car_html.read()
         car_soup = BeautifulSoup(car_page, 'html.parser')

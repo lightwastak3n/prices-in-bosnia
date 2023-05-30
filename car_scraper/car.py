@@ -1,4 +1,88 @@
-from car_scraper.columns_names import specs_columns_mapping
+specs_columns_mapping = {
+"id": "id",
+"Ime": "ime",
+"Cijena": "cijena",
+"Stanje": "stanje",
+"Lokacija": "lokacija",
+"Obnovljen": "obnovljen",
+"Proizvođač": "proizvodjac",
+"Model": "model",
+"Godište": "godiste",
+"Kilometraža": "kilometraza",
+"Kilovata (KW)": "kilovata",
+"Kubikaža": "kubikaza",
+"Gorivo": "gorivo",
+"Broj vrata": "vrata",
+"Konjskih snaga": "konjskih_snaga",
+"Metalik": "metalik",
+"Masa/Težina (kg)": "masa",
+"Tip": "tip",
+"Pogon": "pogon",
+"Emisioni standard": "emisioni_standard",
+"Veličina felgi": "velicina_felgi",
+"Transmisija": "transmisija",
+"Broj stepeni prijenosa": "brzina",
+"Boja": "boja",
+"Muzika/ozvučenje": "ozvucenje",
+"Parking senzori": "parking_senzori",
+"Parking kamera": "parking_kamera",
+"Registrovan do": "registrovan_do",
+"Godina prve registracije": "prva_registracija",
+"Broj prethodnih vlasnika": "prethodnih_vlasnika",
+"Posjeduje gume": "gume",
+"Višezonska klima": "visezonska_klima",
+"Rolo zavjese": "rolo_zavjese",
+"Svjetla": "svjetla",
+"Zaštita/Blokada": "zastita_blokada",
+"Sjedećih mjesta": "sjedecih_mjesta",
+"Turbo": "turbo",
+"Start-Stop sistem": "start_stop_sistem",
+"DPF/FAP filter": "dpf_fap_filter",
+"Park assist": "park_assist",
+"Strane tablice": "strane_tablice",
+"Registrovan": "registrovan",
+"Ocarinjen": "ocarinjen",
+"Na lizingu": "na_lizingu",
+"Prilagođen invalidima": "prilagodjen_invalidima",
+"Servisna knjiga": "servisna_knjiga",
+"Servo volan": "servo_volan",
+"Komande na volanu": "komande_na_volanu",
+"Tempomat": "tempomat",
+"ABS": "abs",
+"ESP": "esp",
+"Airbag": "airbag",
+"El. podizači stakala": "el_podizaci_stakala",
+"Električni retrovizori": "elektricni_retrovizori",
+"Senzor mrtvog ugla": "senzor_mrtvog_ugla",
+"Klima": "klima",
+"Digitalna klima": "digitalna_klima",
+"Navigacija": "navigacija",
+"Touch screen (ekran)": "touch_screen",
+"Šiber": "siber",
+"Panorama krov": "panorama_krov",
+"Naslon za ruku": "naslon_za_ruku",
+"Koža": "koza",
+"Hlađenje sjedišta": "hladjenje_sjedista",
+"Masaža sjedišta": "masaza_sjedista",
+"Grijanje sjedišta": "grijanje_sjedista",
+"El. pomjeranje sjedišta": "el_pomjeranje_sjedista",
+"Memorija sjedišta": "memorija_sjedista",
+"Senzor auto. svjetla": "senzor_auto_svjetla",
+"Alu felge": "alu_felge",
+"Alarm": "alarm",
+"Centralna brava": "centralna_brava",
+"Daljinsko otključavanje": "daljinsko_otkljucavanje",
+"Oldtimer": "oldtimer",
+"Auto kuka": "auto_kuka",
+"ISOFIX": "isofix",
+"Udaren": "udaren",
+"Vrsta oglasa": "vrsta_oglasa",
+"Datum objave": "datum_objave",
+"Broj pregleda": "broj_pregleda",
+"radnja": "radnja",
+"datum": "datum"
+}
+
 
 class Car:
     """
@@ -12,10 +96,15 @@ class Car:
         Initializes Car object and cleans the data.
         """
         self.data = data
+        print("cleaning keys")
         self.clean_dict_keys()
+        print("renaming columns")
         self.rename_columns()
+        print("fixing basic data")
         self.fix_basic_data()
+        print("fixing year")
         self.fix_year()
+        print("fixing power")
         self.fix_power()
         self.fix_first_registration()
         self.fix_radio_columns()
@@ -48,10 +137,7 @@ class Car:
         """
         Fixes price, mileage, doors and rim size such that they are clean numbers.
         """
-        self.data["cijena"] = self.data["cijena"].rstrip(" KM").replace(".", "")
-        if "," in self.data["cijena"]:
-            self.data["cijena"] = self.data["cijena"].split(",")[0]
-        self.data["cijena"] = int(self.data["cijena"])
+        self.data["kilometraza"] = str(self.data["kilometraza"])
         if "kilometraza" in self.data:
             if "," in self.data["kilometraza"]:
                 self.data["kilometraza"] = self.data["kilometraza"].split(",")[0]
@@ -73,12 +159,12 @@ class Car:
         """
         Tries to change power (kW and PS) to an int if possible. If not changes them to None.
         """
-        if 'kilovata' in self.data and not self.data['kilovata'].isnumeric():
+        if 'kilovata' in self.data and type(self.data['kilovata']) != int:
             try:
                 self.data['kilovata'] = int("".join(filter(str.isdigit, self.data['kilovata'])))
             except ValueError:
                 self.data['kilovata'] = None
-        if 'konjskih_snaga' in self.data and not self.data['konjskih_snaga'].isnumeric():
+        if 'konjskih_snaga' in self.data and type(self.data['konjskih_snaga']) != int:
             try:
                 self.data['konjskih_snaga'] = int("".join(filter(str.isdigit, self.data['konjskih_snaga'])))
             except ValueError:

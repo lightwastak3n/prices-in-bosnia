@@ -49,7 +49,7 @@ while True:
         else:
             allocated_time = randint(1000, 1200)
 
-        pause_between_items = randint(20,40)
+        pause_between_items = randint(10,20)
         possible_fit = min(allocated_time // pause_between_items, len(not_scraped))
         time_left = max(allocated_time - total_not_scraped * pause_between_items, 0)
 

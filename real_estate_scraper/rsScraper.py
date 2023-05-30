@@ -119,19 +119,8 @@ class RealEstateScraper:
         Returns:
             data: dictionary of properties and values found on a given listing
         """
-        # Check for empty listing
-        missing_page = rs_soup.find("h1")
-        if missing_page and "Oprostite" in missing_page.text:
-            return None
-                
-        name = rs_soup.find("h2")
-        name = name.text.strip()
-        data = {"id": rs_id, "Ime": name, "datum": f"{date.today()}"}
-
-        price_span = rs_soup.find("span", {"class": "price-heading vat"})
-        data["Cijena"] = price_span.text
-
         # Run window.__NUXT__ function and get the data
+        data = {"id": rs_id, "datum": f"{date.today()}"}
         all_scripts = rs_soup.findAll("script")
         for script in all_scripts:
             if script.contents and "window.__NUXT__" in script.contents[0][:50]:
@@ -140,11 +129,20 @@ class RealEstateScraper:
                 target_script = target_script.replace("new Map([])", "[]")
                 output = js2py.eval_js(target_script)
                 output = str(output)
+                if "Request failed with status code 404" in output:
+                    print("Listing deleted")
+                    return None
                 output = output.replace("None", "null").replace("False", "false").replace("True", "true").replace("'", '"').replace("\\", "")
                 pattern = r'"description":\s*".*?"\s*,\s*"updated_at"'
                 output = re.sub(pattern, '"description": null, "updated_at"', output)
                 output = json.loads(output)
-                
+
+                # Get name, id, price
+                print("Getting name and price")
+                print(f"name is {output['data'][0]['title']}")
+                data["Ime"] = output['data'][0]['title']
+                data["Cijena"] = output['data'][0]['listing']['price']
+
                 # Table data
                 print("Getting table data")
                 for prop in output['data'][0]['listing']['attributes']:
@@ -187,13 +185,21 @@ class RealEstateScraper:
                     data["Obnovljen"] = datetime.fromtimestamp(int(output['data'][0]['listing']['date'])).strftime('%Y-%m-%d')
 
                 # Get the state
+                print("Getting state")
+                print(output['data'][0]['listing']['state'])
                 state_map = {"used": "koristeno", "new": "novo"}
-                data["Stanje"] = state_map[output['data'][0]['listing']['state']]
+                if output['data'][0]['listing']['state'] != "none":
+                    data["Stanje"] = state_map[output['data'][0]['listing']['state']]
+
+                # Get listing type
+                listing_type_map = {"sell": "prodaja", "rent": "iznajmljivanje"}
+                data["Vrsta oglasa"] = listing_type_map[output['data'][0]['listing']['listing_type']]
+                print("Got all the data")
                 
         print(data) 
         return data
 
-    def scrape_real_estate(self, rs_id, rs_link, rs_type, write_log_info) -> dict:
+    def scrape_real_estate(self, rs_id, rs_link, rs_type, write_log_info):
         """
         Scrapes individual real_estate.
 
@@ -207,11 +213,12 @@ class RealEstateScraper:
         rs_soup = self.get_soup(rs_link)
         try:
             data = self.get_real_estate_details(rs_soup, rs_id, rs_type)
-            if "Plaćam do" in data:
+            if data and "Plaćam do" in data:
                 print("Potraznja. Skipping.")
                 return None
             return data
         except KeyError:
+            print(KeyError)
             print(f"Real estate {rs_link} deleted. Skipping.")
             write_log_info(f"Real estate {rs_link} deleted. Skipping.")
         return None
