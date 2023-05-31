@@ -5,7 +5,7 @@ def test(x):
     pass
 
 scraper = CarScraper()
-data = scraper.scrape_car("53068731", "https://olx.ba/artikal/53370955/", test)
+data = scraper.scrape_car('53068731', 'https://olx.ba/artikal/53453609/', test)
 print("Got data")
 
 if data:
