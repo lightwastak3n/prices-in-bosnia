@@ -1,3 +1,5 @@
+import csv
+
 from time import sleep
 from datetime import datetime
 
@@ -38,7 +40,6 @@ def save_records_csv(records, file_name):
         records: list of records
         file_name: name of the file
     """
-    with open(file_name, "w", encoding="utf-8") as f:
-        for record in records:
-            f.write(f"{record}\n")
-
+    with open(file_name, "w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file, delimiter=";")
+        writer.writerows(records)
