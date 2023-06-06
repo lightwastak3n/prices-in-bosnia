@@ -13,6 +13,7 @@ columns = {"Stan":
             "Sprat": "sprat",
             "kompanija": "kompanija",
             "Vrsta grijanja": "vrsta_grijanja",
+            "Namješten": "namjesten",
             "Namješten?": "namjesten",
             "Kanalizacija": "kanalizacija",
             "Parking": "parking",
@@ -185,6 +186,7 @@ class RealEstate:
         """
         new_data = {}
         for spec in self.data:
+            print(f"Trying to rename {spec}")
             new_data[columns[self.type][spec]] = self.data[spec]
         self.data = new_data
 
@@ -195,18 +197,18 @@ class RealEstate:
         # self.data["cijena"] = self.data["cijena"].rstrip(" KM").replace(".", "")
         # if "," in self.data["cijena"]:
         #     self.data["cijena"] = self.data["cijena"].split(",")[0]
-        if self.type == "Zemljiste" and "stanje" in self.data:
-            del self.data["stanje"]
-        if "kvadrata" in self.data:
-            self.data["kvadrata"] = self.fix_int(self.data["kvadrata"])
+        if self.type == 'Zemljiste' and 'stanje' in self.data:
+            del self.data['stanje']
+        if 'kvadrata' in self.data:
+            self.data['kvadrata'] = self.fix_int(self.data['kvadrata'])
 
     def fix_int(self, num):
         num = str(num)
-        num = num.replace(".", "")
-        num = num.replace("m2", "")
-        num = num.replace("²", "")
-        if "," in num:
-            num = num.split(",")[0]
+        num = num.replace('.', "")
+        num = num.replace('m2', "")
+        num = num.replace('²', "")
+        if ',' in num:
+            num = num.split(',')[0]
         num = "".join(filter(str.isdigit, num))
         if num == "":
             num = 0
@@ -229,17 +231,22 @@ class RealEstate:
         """
         Room number should be int for a house and we can give it values for a apartment
         """
-        if "broj_soba" in self.data and self.data["broj_soba"] == "8+":
-            self.data["broj_soba"] = 8
-        if self.type == "Stan" and "broj_soba" in self.data:
+        if 'broj_soba' in self.data and self.data['broj_soba'] == '8+':
+            self.data['broj_soba'] = 8
+        if self.type == 'Stan' and 'broj_soba' in self.data:
             name_room = {
-                "Garsonjera": 0,
-                "Jednosoban (1)": 1,
-                "Jednoiposoban (1.5)": 1.5,
-                "Dvosoban (2)": 2,
-                "Trosoban (3)": 3,
-                "Četverosoban (4)": 4,
-                "Petosoban i više": 5
+                'Garsonjera': 0,
+                'Jednosoban (1)': 1,
+                'Jednoiposoban (1.5)': 1.5,
+                'Dvosoban (2)': 2,
+                'Trosoban (3)': 3,
+                'Četverosoban (4)': 4,
+                'Petosoban i više': 5,
+                '1': 1,
+                '2': 2,
+                '3': 3,
+                '4': 4,
+                '5': 5
             }
             self.data["broj_soba"] = name_room[self.data["broj_soba"]]
     
@@ -250,7 +257,7 @@ class RealEstate:
 
     def fix_namjesten(self):
         if self.type == "Stan":
-            namjesten_mapping = {"Namješten": 2, "Nenamješten": 0, "Polunamješten": 1, "Namje&scaron;ten": 2}
+            namjesten_mapping = {"Namješten": 2, "Nenamješten": 0, "Polunamješten": 1, "Namje&scaron;ten": 2, 1: 2}
             if "namjesten" in self.data:
                 self.data["namjesten"] = namjesten_mapping[self.data["namjesten"]]
 

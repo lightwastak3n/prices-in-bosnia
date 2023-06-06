@@ -172,14 +172,12 @@ class RealEstateScraper:
                 data['kompanija'] = shop
 
                 # FFS olx what the fuck is with these random properties
-                # Deleting al these 
+                # Deleting all these extra columns
                 print("Deleting extra columns if needed")
-                if "Vrsta opreme" in data:
-                    del data["Vrsta opreme"]
-                if "Ime i broj licence agenta" in data:
-                    del data["Ime i broj licence agenta"]
-                if "Broj posredničkog ugovora" in data:
-                    del data["Broj posredničkog ugovora"]
+                extra_cols = ["Vrsta opreme", "Ime i broj licence agenta", "Broj posredničkog ugovora", "Kuhinja", "Broj kreveta"]
+                for col in extra_cols:
+                    if col in data:
+                        del data[col]
 
                 # Get the number of views and all the dates
                 print("Getting views and dates")
