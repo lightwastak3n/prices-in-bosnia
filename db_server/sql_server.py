@@ -746,6 +746,8 @@ class Server:
 
         Args:
             table (str): The name of the table to get the records from.
+            date_column (str): The name of the column that contains the date.
+            date (str): The date on which to get the records, in the format YYYY-MM-DD.
 
         Returns:
             result (list): A list of dictionaries containing the records from the given table.
@@ -754,6 +756,29 @@ class Server:
         date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
         with self.connection.cursor() as cursor:
             cursor.execute(f"SELECT * FROM {table} WHERE {date_column}=%s;", (date,))
+            result = cursor.fetchall()
+        self.close_connection()
+        return result
+
+    def get_items_on_date(self, date):
+        """
+        Gets all items and their prices from a given date.
+
+        Args:
+            date (str): The date on which to get the items, in the format YYYY-MM-DD.
+
+        Returns:
+            result (list): A list of dictionaries containing the items from the given store.
+        """
+        self.create_connection()
+        with self.connection.cursor() as cursor:
+            query = """
+                SELECT items.name, items.type, items.unit, items.store, item_prices.price, item_prices.date
+                FROM items
+                JOIN item_prices ON items.id = item_prices.item_id
+                WHERE item_prices.date = %s;
+            """
+            cursor.execute(query, (date,))
             result = cursor.fetchall()
         self.close_connection()
         return result
