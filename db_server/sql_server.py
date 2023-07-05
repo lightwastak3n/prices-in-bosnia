@@ -206,7 +206,7 @@ class Server:
                             broj_soba INT,
                             broj_spratova INT,
                             okucnica_kvadratura INT,
-                            namjestena INT,
+                            namjesten INT,
                             vrsta_grijanja TEXT,
                             vrsta_poda TEXT,
                             struja INT,
@@ -225,7 +225,7 @@ class Server:
                             garaza INT,
                             internet INT,
                             klima INT,
-                            nedavno_adaptirana INT,
+                            nedavno_adaptiran INT,
                             plin INT,
                             telefon INT,
                             video_nadzor INT,
@@ -254,6 +254,8 @@ class Server:
                             adresa TEXT,
                             godina_izgradnje TEXT,
                             broj_soba FLOAT,
+                            kuhinja TEXT,
+                            kupatilo TEXT,
                             sprat TEXT,
                             balkon INT,
                             kvadratura_balkona INT,
@@ -289,6 +291,7 @@ class Server:
                             datum_objave DATE,
                             obnovljen DATE,
                             broj_pregleda INT,
+                            tv INT,
                             FOREIGN KEY(id) REFERENCES rs_links(id));''')
 
     def create_table_land(self):

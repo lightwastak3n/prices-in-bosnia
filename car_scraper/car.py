@@ -137,8 +137,8 @@ class Car:
         """
         Fixes price, mileage, doors and rim size such that they are clean numbers.
         """
-        self.data['kilometraza'] = str(self.data['kilometraza'])
         if 'kilometraza' in self.data:
+            self.data['kilometraza'] = str(self.data['kilometraza'])
             if "," in self.data['kilometraza']:
                 self.data['kilometraza'] = self.data['kilometraza'].split(',')[0]
             self.data['kilometraza'] = self.data['kilometraza'].replace('km', "")
