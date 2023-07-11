@@ -40,7 +40,7 @@ class TropicScraper:
                 sleep(randint(50, 80))
                 html = requests.get(get_nth_page(page_number, self.category_links[item_type])).content
                 self.htmls[item_type].append(html)
-            sleep(randint(50, 80))
+            sleep(randint(30, 50))
 
     def fix_serbian_letters(self, text):
         latin_chars = {
