@@ -5,7 +5,7 @@ def test(x):
     pass
 
 scraper = RealEstateScraper()
-data = scraper.scrape_real_estate("533070662", "https://olx.ba/artikal/52699846/", "Stan", test)
+data = scraper.scrape_real_estate("533070662", "https://olx.ba/artikal/51870703/", "Zemljiste", test)
 print(data)
 if data:
     rs_data = RealEstate(data, "Stan")

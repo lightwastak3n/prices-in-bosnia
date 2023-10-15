@@ -174,7 +174,7 @@ class RealEstateScraper:
                 # FFS olx what the fuck is with these random properties
                 # Deleting all these extra columns
                 print("Deleting extra columns if needed")
-                extra_cols = ["Vrsta opreme", "Ime i broj licence agenta", "Broj posredničkog ugovora", "Kuhinja", "Broj kreveta"]
+                extra_cols = ["Vrsta opreme", "Ime i broj licence agenta", "Broj posredničkog ugovora", "Kuhinja", "Broj kreveta", "Vrsta", "Broj kupatila"]
                 for col in extra_cols:
                     if col in data:
                         del data[col]

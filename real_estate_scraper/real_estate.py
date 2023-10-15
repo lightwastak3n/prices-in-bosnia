@@ -139,6 +139,7 @@ columns = {
     "lat": "lat",
     "lng": "lng",
     "Kvadrata": "kvadrata",
+    "Kvadratura": "kvadrata",
     "Broj soba": "broj_soba",
     "Sprat": "sprat",
     "kompanija": "kompanija",
