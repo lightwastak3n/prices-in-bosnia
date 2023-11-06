@@ -771,7 +771,7 @@ class Server:
             date (str): The date on which to get the items, in the format YYYY-MM-DD.
 
         Returns:
-            result (list): A list of dictionaries containing the items from the given store.
+            result (list): A list of tuples containing the items from the given store.
         """
         self.create_connection()
         with self.connection.cursor() as cursor:
@@ -782,6 +782,23 @@ class Server:
                 WHERE item_prices.date = %s;
             """
             cursor.execute(query, (date,))
+            result = cursor.fetchall()
+        self.close_connection()
+        return result
+        
+    def get_records_from_to_date(self, table, date_column, start_date, end_date):
+        """
+        Gets the items from a given table that have a date between two dates.
+
+        Args:
+            table (str): The name of the table to get the records from.
+            date_column (str): The name of the column that contains the date.
+            start_date (str): The start date, in the format YYYY-MM-DD.
+            end_date (str): The end date, in the format YYYY-MM-DD.
+        """
+        self.create_connection()
+        with self.connection.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM {table} WHERE {date_column} BETWEEN %s AND %s;", (start_date, end_date))
             result = cursor.fetchall()
         self.close_connection()
         return result

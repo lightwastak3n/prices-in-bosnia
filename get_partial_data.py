@@ -1,4 +1,6 @@
 import csv
+import calendar
+
 from datetime import datetime
 from db_server.sql_server import Server
 from time import sleep
@@ -227,6 +229,31 @@ olx_columns = {
 }
 
 
+def get_month_range(year, month):
+    # Determine the number of days in the month
+    _, num_days = calendar.monthrange(year, month)
+
+    # Format the first day of the month
+    first_day = f"{year}-{month:02d}-01"
+
+    # Format the last day of the month
+    last_day = f"{year}-{month:02d}-{num_days:02d}"
+
+    return first_day, last_day
+
+
+def generate_dates(month, year):
+    dates = []
+    for day in range(1, 32):
+        try:
+            date = datetime(year, month, day)
+            formatted_date = date.strftime('%Y-%m-%d')
+            dates.append(formatted_date)
+        except ValueError:
+            break
+    return dates
+
+
 def write_csv(data, filename):
     with open(filename, "w", newline="", encoding="utf-8") as csvfile:
         writer = csv.writer(csvfile, delimiter=";")
@@ -245,6 +272,12 @@ def get_olx_data(server, type, date):
     write_csv(data, f"sql_dumps/{type}_{date}.csv")
 
 
+def get_olx_data_from_to_date(server, type, start_date, end_date):
+    items = server.get_records_from_to_date(type, "datum", start_date, end_date)
+    data = [olx_columns[type]] + items
+    write_csv(data, f"sql_dumps/{type}_{start_date}_{end_date}.csv")
+
+
 def download_everything(server, date):
     get_items_date(server, date)
     sleep(5)
@@ -253,23 +286,14 @@ def download_everything(server, date):
         sleep(5)
 
 
-def generate_dates(month, year):
-    dates = []
-    for day in range(1, 32):
-        try:
-            date = datetime(year, month, day)
-            formatted_date = date.strftime('%Y-%m-%d')
-            dates.append(formatted_date)
-        except ValueError:
-            break
-    return dates
-
-
 server = Server()
-# date = "2023-10-20"
-# download_everything(server, date)
+dates = [
+    "2023-11-01",
+    "2023-11-02",
+    "2023-11-03",
+    "2023-11-04",
+    "2023-11-05",
+]
 
-dates_april = generate_dates(6, 2022)
-for date in dates_april:
-    get_olx_data(server, "cars", date)
-    sleep(5)
+for date in dates:
+    download_everything(server, date)
