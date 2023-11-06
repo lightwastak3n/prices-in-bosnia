@@ -13,4 +13,4 @@ data = server.get_records_on_date("item_prices", "date", "2023-05-01")
 for item in data:
     item[3] = str(item[3])
 
-write_csv(data, "test.json")
+write_csv(data, "test.csv")

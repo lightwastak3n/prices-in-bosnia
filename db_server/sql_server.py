@@ -785,3 +785,22 @@ class Server:
             result = cursor.fetchall()
         self.close_connection()
         return result
+    
+    def get_distinct_items_table_column(self, table, column_name):
+        """
+        Gets the distinct values of a given column from a given table.
+
+        Args:
+            table (str): The name of the table to get the distinct values from.
+            column_name (str): The name of the column to get the distinct values from.
+        
+        Returns:
+            result (list): A list of values containing the distinct values from the given column.
+        """
+        self.create_connection()
+        with self.connection.cursor() as cursor:
+            cursor.execute(f"SELECT DISTINCT {column_name} FROM {table};")
+            result = cursor.fetchall()
+            result = [x[0] for x in result]
+        self.close_connection()
+        return result
