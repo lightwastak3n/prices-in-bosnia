@@ -187,7 +187,7 @@ class Car:
                     self.data[col] = 0
 
     def fix_serbian_letters(self):
-        """Remove lettes š, đ, č, ć, ž from the values in data"""
+        """Remove letters š, đ, č, ć, ž from the values in data"""
         latin_chars = {
             'š': 's',
             'đ': 'dj',

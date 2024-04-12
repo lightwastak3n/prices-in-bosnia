@@ -1,389 +1,34 @@
-import mysql.connector
-import json
 import os
-import datetime
+import libsql_experimental as libsql
 
-from mysql.connector import Error
 
 class Server:
-    """
-    Represents connection with the MySQL server.
-    Creates databases, tables.
-    Runs queries on the database.
+    def __init__(self, db_org, token):
+        self.db_link = "libsql://" + db_org + ".turso.io"
+        self.token = token
+        self.conn = libsql.connect(database=self.db_link, auth_token=self.token)
 
-    Attributes:
-        HOST: IP of the MySQL server
-        PORT: Port of the MySQL server
-        DATABASE: Name of the database to which to connect
-        USER: Username to use
-        PASSWORD: Password to use
-        connection: connection used to comunicate with the database.
-    """
-
-    def __init__(self, configfile="config.json") -> None:
-        """
-        Initializes Server object and populates attributes by loading the from the .json file.
-        """
-        self.load_config(configfile)
-        self.rs_mapping = {"Kuca": "houses", "Stan": "flats", "Zemljiste": "land"}
-
-    def load_config(self, configfile):
-        """
-        Loads MySQL config into object attributes.
-        """
-        CONFIG_FILE = os.path.join(os.path.dirname(__file__), configfile)
-        with open(CONFIG_FILE, 'r') as cnf:
-            config = json.load(cnf)
-        self.HOST = config['host']
-        self.PORT = config['port']
-        self.DATABASE = config['database']
-        self.USER = config['user']
-        self.PASSWORD = config['password']
-
-    def create_connection(self):
-        """
-        Creates connection and stores it as attribute.
-        """
-        self.connection = self.get_connection()
-
-    def get_connection(self):
-        """
-        Creates connection.
-        """
-        try:
-            connection = mysql.connector.connect(
-                host=self.HOST,
-                port=self.PORT,
-                database=self.DATABASE,
-                user=self.USER,
-                password=self.PASSWORD)
-            if connection.is_connected():
-                return connection
-        except Error as e:
-            print("Error while connecting", e)
-
-    def close_connection(self):
-        """
-        Closes connection stored in the attribute.
-        """
-        self.connection.close()
-
-    def create_database(self, db_name):
-        """
-        Creates database prices.
-        """
-        with self.connection.cursor() as cursor:
-            cursor.execute(f"CREATE DATABASE {db_name};")
-
-    def create_table_car_links(self):
-        """
-        Creates table that stores id, links, and status (scraped or not) of a car found on main page of OLX.
-        """
-        with self.connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE links_cars
-                (id INT PRIMARY KEY NOT NULL UNIQUE,
-                link TEXT NOT NULL,
-                scraped INT);''')
-
-    def create_table_cars(self):
-        """
-        Creates table that stores cars and their properties.
-        """
-        with self.connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE cars
-                            (id INT NOT NULL UNIQUE,
-                            ime TEXT NOT NULL,
-                            cijena INT NOT NULL,
-                            stanje TEXT,
-                            lokacija TEXT,
-                            obnovljen TEXT,
-                            proizvodjac TEXT NOT NULL,
-                            model TEXT NOT NULL,
-                            godiste INT NOT NULL,
-                            kilometraza INT,
-                            kilovata INT,
-                            kubikaza TEXT,
-                            gorivo TEXT,
-                            vrata INT,
-                            konjskih_snaga INT,
-                            metalik INT,
-                            masa TEXT,
-                            tip TEXT,
-                            pogon TEXT,
-                            emisioni_standard TEXT,
-                            velicina_felgi INT,
-                            transmisija TEXT,
-                            brzina TEXT,
-                            boja TEXT,
-                            ozvucenje TEXT,
-                            parking_senzori TEXT,
-                            parking_kamera TEXT, 
-                            registrovan_do TEXT,
-                            prva_registracija INT,
-                            prethodnih_vlasnika INT,
-                            gume TEXT,
-                            visezonska_klima TEXT,
-                            rolo_zavjese TEXT,
-                            svjetla TEXT,
-                            zastita_blokada TEXT,
-                            sjedecih_mjesta TEXT,
-                            turbo INT,
-                            start_stop_sistem INT,
-                            dpf_fap_filter INT,
-                            park_assist INT,
-                            strane_tablice INT,
-                            registrovan INT,
-                            ocarinjen INT,
-                            na_lizingu INT,
-                            prilagodjen_invalidima INT,
-                            servisna_knjiga INT,
-                            servo_volan INT,
-                            komande_na_volanu INT,
-                            tempomat INT,
-                            abs INT,
-                            esp INT,
-                            airbag INT,
-                            el_podizaci_stakala INT,
-                            elektricni_retrovizori INT,
-                            senzor_mrtvog_ugla INT,
-                            klima INT,
-                            digitalna_klima INT,
-                            navigacija INT,
-                            touch_screen INT,
-                            siber INT,
-                            panorama_krov INT,
-                            naslon_za_ruku INT,
-                            koza INT,
-                            hladjenje_sjedista INT,
-                            masaza_sjedista INT,
-                            grijanje_sjedista INT,
-                            el_pomjeranje_sjedista INT,
-                            memorija_sjedista INT,
-                            senzor_auto_svjetla INT,
-                            alu_felge INT,
-                            alarm INT,
-                            centralna_brava INT,
-                            daljinsko_otkljucavanje INT,
-                            oldtimer INT,
-                            auto_kuka INT,
-                            isofix INT,
-                            udaren INT,
-                            vrsta_oglasa TEXT,
-                            datum_objave TEXT,
-                            broj_pregleda INT,
-                            radnja INT,
-                            datum DATE,
-                            FOREIGN KEY(id) REFERENCES links_cars(id));''')
-
-    def create_table_rs_links(self):
-        """
-        Creates table that stores id, links, and status (scraped or not) of a real estate found on main pages of their respective listings.
-        """
-        with self.connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE rs_links
-                (id INT PRIMARY KEY NOT NULL UNIQUE,
-                link TEXT NOT NULL,
-                type TEXT NOT NULL,
-                scraped INT);''')
-
-    def create_table_houses(self):
-        """
-        Creates a table that stores houses and their properties.
-        """
-        with self.connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE houses
-                            (id	INT NOT NULL UNIQUE,
-                            ime TEXT,
-                            datum DATE,
-                            cijena INT,
-                            kvadrata INT,
-                            stanje TEXT,
-                            lokacija TEXT,
-                            adresa TEXT,
-                            lat FLOAT,
-                            lng FLOAT,
-                            godina_izgradnje TEXT,
-                            broj_soba INT,
-                            broj_spratova INT,
-                            okucnica_kvadratura INT,
-                            namjesten INT,
-                            vrsta_grijanja TEXT,
-                            vrsta_poda TEXT,
-                            struja INT,
-                            voda INT,
-                            primarna_orijentacija TEXT,
-                            balkon INT,
-                            kablovska INT,
-                            ostava INT,
-                            parking INT,
-                            podrum INT,
-                            uknjizeno INT,
-                            vrsta_oglasa TEXT,
-                            kanalizacija TEXT,
-                            alarm INT,
-                            blindirana_vrata INT,
-                            garaza INT,
-                            internet INT,
-                            klima INT,
-                            nedavno_adaptiran INT,
-                            plin INT,
-                            telefon INT,
-                            video_nadzor INT,
-                            bazen INT,
-                            kompanija INT,
-                            datum_objave DATE,
-                            obnovljen DATE,
-                            broj_pregleda INT,
-                            FOREIGN KEY(id) REFERENCES rs_links(id));''')
-
-    def create_table_flats(self):
-        """
-        Creates a table that stores flats and their properties.
-        """
-        with self.connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE flats
-                            (id	INT NOT NULL UNIQUE,
-                            ime TEXT,
-                            datum DATE,
-                            cijena INT,
-                            kvadrata INT,
-                            stanje TEXT,
-                            lokacija TEXT,
-                            lat FLOAT,
-                            lng FLOAT,
-                            adresa TEXT,
-                            godina_izgradnje TEXT,
-                            broj_soba FLOAT,
-                            kuhinja TEXT,
-                            kupatilo TEXT,
-                            sprat TEXT,
-                            balkon INT,
-                            kvadratura_balkona INT,
-                            namjesten INT,
-                            iznajmljeno INT,
-                            vrsta_poda TEXT,
-                            vrsta_grijanja TEXT,
-                            kanalizacija INT,
-                            parking INT,
-                            struja INT,
-                            uknjizeno INT,
-                            voda INT,
-                            vrsta_oglasa TEXT,
-                            blindirana_vrata INT,
-                            internet INT,
-                            kablovska INT,
-                            nedavno_adaptiran INT,
-                            plin INT,
-                            podrum INT,
-                            rezije INT,
-                            primarna_orijentacija TEXT,
-                            klima INT,
-                            lift INT,
-                            telefon INT,
-                            video_nadzor INT,
-                            za_studente INT,
-                            ostava INT,
-                            kucni_ljubimci INT,
-                            novogradnja INT,
-                            alarm INT,
-                            garaza INT,
-                            kompanija INT,
-                            datum_objave DATE,
-                            obnovljen DATE,
-                            broj_pregleda INT,
-                            tv INT,
-                            FOREIGN KEY(id) REFERENCES rs_links(id));''')
-
-    def create_table_land(self):
-        """
-        Creates a table that stores lands and their properties.
-        """
-        with self.connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE land
-                            (id	INT NOT NULL UNIQUE,
-                            ime TEXT,
-                            datum DATE,
-                            cijena INT,
-                            kvadrata INT,
-                            lokacija TEXT,
-                            lat FLOAT,
-                            lng FLOAT,
-                            vrsta_oglasa TEXT,
-                            uknjizeno INT,
-                            gradjevinska_dozvola INT,
-                            urbanisticka_dozvola INT,
-                            komunalni_prikljucak INT,
-                            udaljenost_rijeka INT,
-                            iznajmljeno INT,
-                            prilaz TEXT,
-                            kompanija INT,
-                            obnovljen DATE,
-                            datum_objave DATE,
-                            broj_pregleda INT,
-                            FOREIGN KEY(id) REFERENCES rs_links(id));''')
-
-    def create_table_items(self):
-        """
-        Creates a table that stores items from stores.
-        """
-        with self.connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE items 
-                (id INTEGER AUTO_INCREMENT PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
-                type VARCHAR(255) NOT NULL,
-                unit VARCHAR(255) NOT NULL,
-                store VARCHAR(255) NOT NULL);''')
-    
-    def create_table_item_prices(self):
-        """
-        Creates a table that stores historical prices of items.
-        """
-        with self.connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE item_prices 
-                (id INTEGER AUTO_INCREMENT PRIMARY KEY,
-                item_id INTEGER NOT NULL,
-                price REAL NOT NULL,
-                date DATE NOT NULL,
-                FOREIGN KEY (item_id) REFERENCES items (id));''')
-
-    def database_setup(self):
-        """
-        Setup all the tables.
-        """
-        self.create_connection()
-
-        self.create_table_car_links()
-        self.create_table_cars()
-
-        self.create_table_rs_links()
-        self.create_table_houses()
-        self.create_table_flats()
-        self.create_table_land()
-
-        self.create_table_items()
-        self.create_table_item_prices()
-
-        self.close_connection()
+    def execute_script(self, file_path):
+        with open(file_path, 'r') as file:
+            script = file.read()
+        self.conn.executescript(script)
+        self.conn.commit()
 
     def item_in_db(self, table, item_id):
         """
-        Checks if a car is in database.
+        Checks if an item is in database.
 
         Args:
-            car_id: id of the car
+            item_id: id of the item
 
         Returns:
-            bool: True if the car is in database already. False otherwise.
+            bool: True if the item is in database already. False otherwise.
         """
-        self.create_connection()
-        with self.connection.cursor() as cursor:
-            cursor.execute(f"SELECT id FROM {table} WHERE id='{item_id}'")
-            result = cursor.fetchone()
-        self.close_connection()
+        result = self.conn.execute(f"SELECT id FROM {table} WHERE id='{item_id}'").fetchone()
         if result:
             return True
         return False
-    
+
     def items_not_in_db(self, table, ids_list):
         """
         Checks which ids from a list are in a table.
@@ -394,15 +39,11 @@ class Server:
         Returns:
             list: list of ids that are not in the table
         """
-        self.create_connection()
         new_ids = []
-        with self.connection.cursor() as cursor:
-            for id in ids_list:
-                cursor.execute(f"SELECT id FROM {table} WHERE id='{id}'")
-                result = cursor.fetchone()
-                if not result:
-                    new_ids.append(id)
-        self.close_connection()
+        for id in ids_list:
+            result = self.conn.execute(f"SELECT id FROM {table} WHERE id='{id}'")
+            if not result:
+                new_ids.append(id)
         return new_ids
 
     def get_non_scraped_cars(self):
@@ -821,3 +462,9 @@ class Server:
             result = [x[0] for x in result]
         self.close_connection()
         return result
+
+db_org = os.getenv("turso_db_org")
+token = os.getenv("turso_db_token")
+turso = Turso(db_org, token)
+
+print(turso.show_all_records("test"))

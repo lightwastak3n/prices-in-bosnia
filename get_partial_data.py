@@ -287,13 +287,9 @@ def download_everything(server, date):
 
 
 server = Server()
-dates = [
-    "2023-11-01",
-    "2023-11-02",
-    "2023-11-03",
-    "2023-11-04",
-    "2023-11-05",
-]
+dates = generate_dates(12, 2023) 
+
+dates = ['2023-12-31']
 
 for date in dates:
     download_everything(server, date)
