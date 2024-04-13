@@ -33,7 +33,7 @@
         "50895590": "https://olx.ba/artikal/50895590/",
         "51851392": "https://olx.ba/artikal/51851392/",
         "48643665": "https://olx.ba/artikal/48643665/",
-        "50475006": "https://olx.ba/artikal/50475006/",
+        "53421314": "https://olx.ba/artikal/50475006/",
         "50545889": "https://olx.ba/artikal/50545889/",
         "50283941": "https://olx.ba/artikal/50283941/",
         "51852457": "https://olx.ba/artikal/51852457/",
@@ -203,7 +203,18 @@
         "radnja": 0,
         "datum": "2023-02-24",
         "datum_objave": "2023-02-24"
-    },
+    },	
+	"rs_links": {
+		"17014": ["https://www.olx.ba/artikal/17014/", "Zemljiste", "1"],
+		"53070662": ["https://olx.ba/artikal/50860/", "Zemljiste", "1"],
+		"51868032": ["https://www.olx.ba/artikal/181894/", "Kuca", "1"],
+		"199110": ["https://www.olx.ba/artikal/199110/", "Kuca", "1"],
+		"48894962": ["https://www.olx.ba/artikal/385587/", "Stan", "1"],
+		"462131": ["https://www.olx.ba/artikal/462131/", "Stan", "1"],
+		"561091": ["https://www.olx.ba/artikal/561091/", "Kuca", "0"],
+		"667413": ["https://olx.ba/artikal/667413/", "Stan", "0"],
+		"668263": ["https://olx.ba/artikal/668263/", "Zemljiste", "0"]
+	},
     "houses": {
         "3952175": "https://olx.ba/artikal/3952175/",
         "51964255": "https://olx.ba/artikal/51964255/",
@@ -244,7 +255,7 @@
         "50048540": "https://olx.ba/artikal/50048540/",
         "49233119": "https://olx.ba/artikal/49233119/",
         "51617146": "https://olx.ba/artikal/51617146/",
-"40875969": "https://olx.ba/artikal/40875969/"
+        "40875969": "https://olx.ba/artikal/40875969/"
     },
     "flats": {
         "51781859": "https://olx.ba/artikal/51781859/",
@@ -406,7 +417,7 @@
         "broj_soba": 6,
         "broj_spratova": 2,
         "okucnica_kvadratura": 450,
-        "namjestena": 1,
+        "namjesten": 1,
         "vrsta_grijanja": "Drva",
         "vrsta_poda": "Parket",
         "struja": 1,
@@ -420,7 +431,7 @@
         "vrsta_oglasa": "prodaja",
         "kanalizacija": "Standardna",
         "internet": 1,
-        "nedavno_adaptirana": 1,
+        "nedavno_adaptiran": 1,
         "telefon": 1,
         "kompanija": 0,
         "datum_objave": "2023-02-18",
