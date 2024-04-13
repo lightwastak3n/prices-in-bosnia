@@ -1,8 +1,10 @@
 import csv
 import calendar
+from time import sleep
 
 from datetime import datetime
 from db_server.sql_server import Server
+# from db_server.turso_server import Server
 from time import sleep
 
 cars_columns = [
@@ -261,35 +263,41 @@ def write_csv(data, filename):
 
 
 def get_items_date(server, date):
+    print(f"Getting items on {date}")
     items = server.get_items_on_date(date)
-    data = [items_columns] + items
-    write_csv(data, f"sql_dumps/items_{date}.csv")
+    if items:
+        data = [items_columns] + items
+        write_csv(data, f"sql_dumps/items_{date}.csv")
 
 
-def get_olx_data(server, type, date):
-    items = server.get_records_on_date(type, "datum", date)
-    data = [olx_columns[type]] + items
-    write_csv(data, f"sql_dumps/{type}_{date}.csv")
+def get_olx_data(server, rs_type, date):
+    print(f"Getting {rs_type} for {date}")
+    items = server.get_records_on_date(rs_type, "datum", date)
+    if items:
+        data = [olx_columns[rs_type]] + items
+        write_csv(data, f"sql_dumps/{rs_type}_{date}.csv")
 
 
-def get_olx_data_from_to_date(server, type, start_date, end_date):
-    items = server.get_records_from_to_date(type, "datum", start_date, end_date)
-    data = [olx_columns[type]] + items
-    write_csv(data, f"sql_dumps/{type}_{start_date}_{end_date}.csv")
+def get_olx_data_from_to_date(server, rs_type, start_date, end_date):
+    print(f"Getting {rs_type} for {start_date} - {end_date}")
+    items = server.get_records_from_to_date(rs_type, "datum", start_date, end_date)
+    if items:
+        data = [olx_columns[rs_type]] + items
+        write_csv(data, f"sql_dumps/{rs_type}_{start_date}_{end_date}.csv")
 
 
-def download_everything(server, date):
+def download_everything(date):
+    server = Server()
     get_items_date(server, date)
-    sleep(5)
+    sleep(2)
     for listing_type in olx_columns:
+        server = Server()
         get_olx_data(server, listing_type, date)
-        sleep(5)
+        sleep(2)
 
 
-server = Server()
-dates = generate_dates(12, 2023) 
-
-dates = ['2023-12-31']
+dates = generate_dates(3, 2024) 
 
 for date in dates:
-    download_everything(server, date)
+    download_everything(date)
+

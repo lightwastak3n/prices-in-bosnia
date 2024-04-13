@@ -5,7 +5,8 @@ from time import sleep
 
 from car_scraper.carScraper_v2 import CarScraper
 from car_scraper.car import Car
-from db_server.sql_server import Server
+# from db_server.sql_server import Server
+from db_server.turso_server import Server
 from utils.log_maker import write_log_error, write_log_info
 
 
@@ -14,12 +15,12 @@ def send_ntfy(msg):
     url = "https://ntfy.sh/VSNyDS35BgEi"
     requests.post(url=url, data=msg, headers=headers)
 
-server = Server()
 car_scraper = CarScraper()
 
 
 while True:
     try:
+        server = Server()
         car_scraper.get_cars_from_main()
         new_ids = car_scraper.filter_new_cars(server)
         new_found = len(new_ids)
@@ -53,6 +54,7 @@ while True:
             print(f"Scraping {car_link}.")
             data = car_scraper.scrape_car(car_id, car_link, write_log_info)
             print("Got data")
+            server = Server()
             if data:
                 new_car = Car(data)
                 server.insert_car_data(new_car.data, write_log_info, write_log_error)
@@ -60,6 +62,7 @@ while True:
             else:
                 print(f"Car {car_id} not scraped, skipping and marking as scraped.")
             server.mark_as_scraped("links_cars", car_id)
+            server.increase_total_scraped("cars", 1)
         print(f"Cars scraped. Waiting for {time_left} seconds.")
     except Exception as e:
         print(f"Got exception - {e}")

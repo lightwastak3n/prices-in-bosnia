@@ -598,7 +598,7 @@ class Server:
             result: list of all of the rs properties
         """
         self.create_connection()
-        table_name = self.mapping[rs_type]
+        table_name = self.rs_mapping[rs_type]
         with self.connection.cursor() as cursor:
             cursor.execute(f"SELECT * FROM {table_name} WHERE id={rs_id}")
             result = cursor.fetchone()

@@ -5,7 +5,8 @@ from time import sleep
 
 from real_estate_scraper.rsScraper import RealEstateScraper
 from real_estate_scraper.real_estate import RealEstate
-from db_server.sql_server import Server
+# from db_server.sql_server import Server
+from db_server.turso_server import Server
 from utils.log_maker import write_log_error, write_log_info
 
 
@@ -15,12 +16,11 @@ def send_ntfy(msg):
     requests.post(url=url, data=msg, headers=headers)
     sleep(10)
 
-server = Server()
 real_estate_scraper = RealEstateScraper()
-
 
 while True:
     try:
+        server = Server()
         real_estate_scraper.get_real_estates_from_main()
         new_houses, new_flats, new_lands = real_estate_scraper.filter_new_real_estates(server)
         new_found = len(new_houses) + len(new_flats) + len(new_lands)
@@ -62,11 +62,14 @@ while True:
             rs_type = item[2]
             print(f"Scraping {rs_link}.")
             data = real_estate_scraper.scrape_real_estate(rs_id, rs_link, rs_type, write_log_info)
+            server = Server()
             if data:
                 new_rs = RealEstate(data, rs_type)
+                print("Inserting", new_rs.data)
                 server.insert_rs_data(rs_type, new_rs.data, write_log_info, write_log_error)
                 print(f"Rs {rs_id} scraped and inserted into the database.")
             server.mark_as_scraped("rs_links", rs_id)
+            server.increase_total_scraped(rs_type, 1)
         print(f"Rs scraped. Waiting for {time_left} seconds.")
     except Exception as e:
         print(e)

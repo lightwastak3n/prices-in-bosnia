@@ -37,10 +37,10 @@ class TropicScraper:
             self.htmls[item_type].append(html)
             page_limit = 6 if item_type != "meat" else 4
             for page_number in range(2, page_limit):
-                sleep(randint(30, 45))
+                sleep(randint(3, 4))
                 html = requests.get(get_nth_page(page_number, self.category_links[item_type])).content
                 self.htmls[item_type].append(html)
-            sleep(randint(30, 48))
+            sleep(randint(3, 4))
 
     def fix_serbian_letters(self, text):
         latin_chars = {
@@ -89,11 +89,12 @@ class TropicScraper:
             server: The server object that handles the database connection
         """
         print("Adding items to database")
-        today = date.today()
+        today = date.today().isoformat()
         new_items = server.check_if_items_exist(self.items, store)
         if not new_items:
             print("No new items")
         else:
             server.insert_items(new_items, store)
         server.insert_item_prices(self.items, store, today)
+        server.increase_total_scraped("items_dates", len(self.items))
         return len(new_items), len(self.items)

@@ -1,11 +1,6 @@
-import sys
-import os
 import json
 import pytest
 from time import sleep
-
-# parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-# sys.path.append(parent_dir)
 
 from db_server import turso_server
 
@@ -37,6 +32,7 @@ def delete_tables(get_server):
     server.cur.execute("DROP TABLE rs_links;")
     server.cur.execute("DROP TABLE item_prices;")
     server.cur.execute("DROP TABLE items;")
+    server.cur.execute("DROP TABLE scraping_stats;")
     server.conn.commit()
 
 
@@ -50,7 +46,7 @@ def test_tables_in_db(get_server):
     for item in result:
         tables.append(item[1])
     print(tables)
-    test_tables = ["links_cars", "cars", "rs_links", "land", "flats", "houses", "items", "item_prices"]
+    test_tables = ["links_cars", "cars", "rs_links", "land", "flats", "houses", "items", "item_prices", "scraping_stats"]
     assert all([table in tables for table in test_tables]) == True
 
 
@@ -178,6 +174,44 @@ def test_get_house_data(get_server):
     for item in check_items:
         answer.append(item in rs_data)
     assert all(answer) == True
+
+
+def get_fruits_dict():
+    with open("test_data.json", "r", encoding="utf-8") as f:
+        data = json.load(f) 
+    fruits = data["tropic_fruits_and_vegetables"]
+    items_data = []
+    for item_name in fruits: 
+        item = {"name": item_name, "price": fruits[item_name][0], "unit": fruits[item_name][1], "type": "fruits and vegetables"}
+        items_data.append(item)
+    return items_data
+
+
+def test_check_if_items_exits(get_server):
+    items_data = get_fruits_dict()
+    server = get_server
+    new_items = server.check_if_items_exist(items_data, "tropic")
+    assert new_items == items_data
+
+
+def test_insert_items(get_server):
+    fruits = get_fruits_dict()
+    server = get_server
+    server.insert_items(fruits, "tropic")
+    new_items = server.check_if_items_exist(fruits, "tropic")
+    assert new_items == []
+
+
+def test_insert_item_prices(get_server):
+    fruits = get_fruits_dict()
+    server = get_server
+    store = "tropic"
+    today = "2024-04-04"
+    server.insert_item_prices(fruits, store, today)
+    items_present = server.get_items_on_date(today)
+    items_on_server = [[x[0], x[4], x[2], x[1]] for x in items_present]
+    items_sent = [[x["name"], x["price"], x["unit"], x["type"]] for x in fruits]
+    assert items_on_server == items_sent
 
 
 def test_delete_tables(get_server):

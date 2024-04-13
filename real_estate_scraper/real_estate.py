@@ -131,6 +131,7 @@ columns = {
     "id": "id",
     "Ime": "ime",
     "datum": "datum",
+    "Tip nekretnine": "Tip nekretnine",
     "Cijena": "cijena",
     "Stanje": "stanje",
     "Lokacija": "lokacija",
@@ -238,13 +239,14 @@ class RealEstate:
         data: Properties of a real estate that are found on its webpage.
     """
 
-    def __init__(self, data, type):
+    def __init__(self, data, rs_type):
         """
         Initializes real estate object and cleans the data.
         """
         self.data = data
-        self.type = type
+        self.type = rs_type
         self.rename_columns()
+        self.fix_name()
         self.fix_price_and_area()
         self.fix_int_cols()
 
@@ -264,6 +266,9 @@ class RealEstate:
         for spec in self.data:
             new_data[columns[spec]] = self.data[spec]
         self.data = new_data
+
+    def fix_name(self):
+        self.data["ime"] = self.data["ime"].replace('"', "")
 
     def fix_price_and_area(self):
         """
@@ -303,6 +308,9 @@ class RealEstate:
         if "okucnica_kvadratura" in self.data:
             self.data["okucnica_kvadratura"] = self.fix_int(
                 self.data["okucnica_kvadratura"])
+        # Remove columns
+        if "Tip nekretnine" in self.data:
+            del self.data["Tip nekretnine"]
 
     def fix_number_of_rooms(self):
         """
