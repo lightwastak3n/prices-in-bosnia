@@ -21,6 +21,6 @@ def delete_tables():
 server = Server(db_org, turso_token)
 
 # Create tables
-# server.execute_script("create_tables.sql")
+server.execute_script("create_tables.sql")
 # delete_tables()
 

@@ -296,8 +296,12 @@ def download_everything(date):
         sleep(2)
 
 
-dates = generate_dates(3, 2024) 
+# dates = generate_dates(4, 2024) 
+#
+# for date in dates:
+#     download_everything(date)
+#
 
-for date in dates:
-    download_everything(date)
-
+server = Server()
+car_links = server.get_all_rs_links()
+write_csv(car_links, "sql_dumps/rs_links.csv")

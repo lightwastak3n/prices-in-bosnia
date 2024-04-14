@@ -433,6 +433,22 @@ class Server:
         self.close_connection()
         return result
 
+    def get_all_car_links(self):
+        self.create_connection()
+        with self.connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM links_cars;")
+            result = cursor.fetchall()
+        self.close_connection()
+        return result
+
+    def get_all_rs_links(self):
+        self.create_connection()
+        with self.connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM rs_links;")
+            result = cursor.fetchall()
+        self.close_connection()
+        return result
+
     def add_car_link(self, car_id, link, scraped, write_log_info):
         """
         Adds new cars to the links_cars table.

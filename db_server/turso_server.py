@@ -1,4 +1,3 @@
-import datetime
 import os
 import libsql_experimental as libsql
 
@@ -16,6 +15,15 @@ class Server:
             script = file.read()
         self.conn.executescript(script)
         self.conn.commit()
+
+    def transfer_car_links(self, car_links):
+        query = "INSERT INTO links_cars (id, link, scraped) VALUES(?, ?, ?)"
+        batch_size = 10000
+        for i in range(0, len(car_links), batch_size):
+            batch = car_links[i:i+batch_size]
+            self.cur.executemany(query, batch)
+            self.conn.commit()
+
 
     def item_in_db(self, table, item_id):
         """
