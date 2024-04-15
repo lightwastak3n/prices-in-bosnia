@@ -69,7 +69,6 @@ while True:
                 server.insert_rs_data(rs_type, new_rs.data, write_log_info, write_log_error)
                 print(f"Rs {rs_id} scraped and inserted into the database.")
             server.mark_as_scraped("rs_links", rs_id)
-            server.increase_total_scraped(rs_type, 1)
         print(f"Rs scraped. Waiting for {time_left} seconds.")
     except Exception as e:
         print(e)

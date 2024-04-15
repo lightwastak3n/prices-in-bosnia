@@ -6,7 +6,8 @@ CREATE TABLE links_cars
 CREATE INDEX links_cars_scraped ON links_cars (scraped);
 
 CREATE TABLE cars
-(id INT NOT NULL UNIQUE,
+(car_id INT PRIMARY KEY,
+    id INT NOT NULL UNIQUE,
     ime TEXT NOT NULL,
     cijena INT NOT NULL,
     stanje TEXT,
@@ -101,7 +102,8 @@ CREATE TABLE rs_links
 CREATE INDEX rs_links_scraped ON rs_links (scraped);
 
 CREATE TABLE houses
-(id	INT NOT NULL UNIQUE,
+(house_id INT PRIMARY KEY,
+    id	INT NOT NULL UNIQUE,
     ime TEXT,
     datum DATE,
     cijena INT,
@@ -148,7 +150,8 @@ CREATE TABLE houses
 CREATE INDEX houses_date ON houses (datum);
 
 CREATE TABLE flats
-(id	INT NOT NULL UNIQUE,
+(flat_is INT PRIMARY KEY,
+    id	INT NOT NULL UNIQUE,
     ime TEXT,
     datum DATE,
     cijena INT,
@@ -203,7 +206,8 @@ CREATE TABLE flats
 CREATE INDEX flats_date ON flats (datum);
 
 CREATE TABLE land
-(id	INT NOT NULL UNIQUE,
+(land_id INT PRIMARY KEY,
+    id	INT NOT NULL UNIQUE,
     ime TEXT,
     datum DATE,
     cijena INT,
@@ -252,3 +256,27 @@ land INT,
 items_dates INT);
 
 INSERT INTO scraping_stats (id, cars, houses, flats, land, items_dates) VALUES(0, 0, 0, 0, 0, 0);
+
+CREATE TRIGGER insert_new_land
+AFTER INSERT ON land
+BEGIN
+    UPDATE scraping_stats SET land = land + 1;
+END;
+
+CREATE TRIGGER insert_new_house
+AFTER INSERT ON houses
+BEGIN
+    UPDATE scraping_stats SET houses = houses + 1;
+END;
+
+CREATE TRIGGER insert_new_flats
+AFTER INSERT ON flats
+BEGIN
+    UPDATE scraping_stats SET flats = flats + 1;
+END;
+
+CREATE TRIGGER insert_new_car
+AFTER INSERT ON cars
+BEGIN
+    UPDATE scraping_stats SET cars = cars + 1;
+END;

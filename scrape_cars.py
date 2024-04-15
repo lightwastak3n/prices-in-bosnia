@@ -62,7 +62,6 @@ while True:
             else:
                 print(f"Car {car_id} not scraped, skipping and marking as scraped.")
             server.mark_as_scraped("links_cars", car_id)
-            server.increase_total_scraped("cars", 1)
         print(f"Cars scraped. Waiting for {time_left} seconds.")
     except Exception as e:
         print(f"Got exception - {e}")

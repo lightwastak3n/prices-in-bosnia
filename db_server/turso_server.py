@@ -1,5 +1,6 @@
 import os
 import libsql_experimental as libsql
+from time import sleep
 
 class Server:
     def __init__(self, db_org=None, token=None):
@@ -7,8 +8,9 @@ class Server:
         self.token = token if token else os.getenv("turso_db_token")
         self.db_link = "libsql://" + self.db_org + ".turso.io"
         self.conn = libsql.connect(database=self.db_link, auth_token=self.token)
+        # self.conn = libsql.connect("prices_bosnia.db")
         self.cur = self.conn.cursor()
-        self.rs_mapping = {"Kuca": "houses", "Stan": "flats", "Zemljiste": "land"}
+        self.rs_mapping = {"Kuca": "houses", "Stan": "flats", "Zemljiste": "land", "Apartman": "flats"}
 
     def execute_script(self, file_path):
         with open(file_path, 'r') as file:
@@ -16,14 +18,19 @@ class Server:
         self.conn.executescript(script)
         self.conn.commit()
 
-    def transfer_car_links(self, car_links):
-        query = "INSERT INTO links_cars (id, link, scraped) VALUES(?, ?, ?)"
-        batch_size = 10000
-        for i in range(0, len(car_links), batch_size):
-            batch = car_links[i:i+batch_size]
+    def transfer_scraped_links(self, links, item_type):
+        if item_type == "car":
+            query = "INSERT INTO links_cars (id, link, scraped) VALUES(?, ?, ?)"
+        else:
+            query = "INSERT INTO rs_links (id, link, type, scraped) VALUES(?, ?, ?, ?)"
+        batch_size = 50
+        for i in range(0, len(links), batch_size):
+            batch = links[i:i+batch_size]
             self.cur.executemany(query, batch)
             self.conn.commit()
-
+            print(f"Inserted {i} links.")
+            print("Last inserted", batch[-1])
+        print("Done.")
 
     def item_in_db(self, table, item_id):
         """
@@ -334,7 +341,7 @@ class Server:
             store (str): The name of the store in which the items are sold.
         """
         # We are going to insert 100 items at a time.
-        batch_size = 100
+        batch_size = 50
         for i in range(0, len(items_list), batch_size):
             batch = items_list[i:i+batch_size]
             names = [item['name'] for item in batch]
@@ -427,6 +434,12 @@ class Server:
 
     def get_totals(self):
         self.cur.execute("SELECT * FROM scraping_stats;")
+        result = self.cur.fetchall()
+        return result
+
+    def get_triggers(self):
+        query = 'SELECT name, sql FROM sqlite_master WHERE type="trigger"' 
+        self.cur.execute(query)
         result = self.cur.fetchall()
         return result
 
