@@ -6,8 +6,7 @@ CREATE TABLE links_cars
 CREATE INDEX links_cars_scraped ON links_cars (scraped);
 
 CREATE TABLE cars
-(car_id INT PRIMARY KEY,
-    id INT NOT NULL UNIQUE,
+(id INT NOT NULL UNIQUE,
     ime TEXT NOT NULL,
     cijena INT NOT NULL,
     stanje TEXT,
@@ -102,8 +101,7 @@ CREATE TABLE rs_links
 CREATE INDEX rs_links_scraped ON rs_links (scraped);
 
 CREATE TABLE houses
-(house_id INT PRIMARY KEY,
-    id	INT NOT NULL UNIQUE,
+(id	INT NOT NULL UNIQUE,
     ime TEXT,
     datum DATE,
     cijena INT,
@@ -150,8 +148,7 @@ CREATE TABLE houses
 CREATE INDEX houses_date ON houses (datum);
 
 CREATE TABLE flats
-(flat_is INT PRIMARY KEY,
-    id	INT NOT NULL UNIQUE,
+(id	INT NOT NULL UNIQUE,
     ime TEXT,
     datum DATE,
     cijena INT,
@@ -206,8 +203,7 @@ CREATE TABLE flats
 CREATE INDEX flats_date ON flats (datum);
 
 CREATE TABLE land
-(land_id INT PRIMARY KEY,
-    id	INT NOT NULL UNIQUE,
+(id	INT NOT NULL UNIQUE,
     ime TEXT,
     datum DATE,
     cijena INT,

@@ -85,7 +85,7 @@
 #             "Datum objave": "datum_objave",
 #             "Broj pregleda": "broj_pregleda",
 #             "Kanalizacija": "kanalizacija",
-#             "Alarm": "alarm",
+#             "Alart": "alarm",
 #             "Blindirana vrata": "blindirana_vrata",
 #             "Garaža": "garaza",
 #             "Internet": "internet",
@@ -131,7 +131,6 @@ columns = {
     "id": "id",
     "Ime": "ime",
     "datum": "datum",
-    "Tip nekretnine": "Tip nekretnine",
     "Cijena": "cijena",
     "Stanje": "stanje",
     "Lokacija": "lokacija",
@@ -262,6 +261,13 @@ class RealEstate:
         Changes the names of the keys (real estate attributes) in self.data.
         The original names are as found on olx so we rename them to something easier to work with.
         """
+        col_to_remove = []
+        for col in self.data:
+            if col not in columns:
+                col_to_remove.append(col)
+        for col in col_to_remove:
+            del self.data[col]
+
         new_data = {}
         for spec in self.data:
             new_data[columns[spec]] = self.data[spec]
@@ -309,8 +315,9 @@ class RealEstate:
             self.data["okucnica_kvadratura"] = self.fix_int(
                 self.data["okucnica_kvadratura"])
         # Remove columns
-        if "Tip nekretnine" in self.data:
-            del self.data["Tip nekretnine"]
+        for col in self.data:
+            if col not in columns:
+                del self.data[col]
 
     def fix_number_of_rooms(self):
         """
@@ -343,7 +350,7 @@ class RealEstate:
     def fix_namjesten(self):
         if self.type == "Stan":
             namjesten_mapping = {"Namješten": 2, "Nenamješten": 0,
-                                 "Polunamješten": 1, "Namje&scaron;ten": 2, 1: 2}
+                                 "Polunamješten": 1, "Namje&scaron;ten": 2, 1: 2, 0: 0}
             if "namjesten" in self.data:
                 self.data["namjesten"] = namjesten_mapping[self.data["namjesten"]]
 

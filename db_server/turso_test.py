@@ -37,28 +37,7 @@ def insert_batch():
     server.cur.executemany(query, data)
     show_data()
 
-items_list = [{'name': 'banana', 'price': 3.19, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'luk crveni', 'price': 1.79, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'mrkva', 'price': 1.89, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'krompir mladi bijeli', 'price': 1.99, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'krompir bijeli lijevce', 'price': 1.65, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'krompir glamocki crveni', 'price': 2.49, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'kupus mladi', 'price': 1.99, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'jabuka ajdared', 'price': 1.99, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'lubenica sarena', 'price': 4.59, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'narandza spanska', 'price': 4.29, 'unit': 'kg', 'type': 'fruits and vegetables'}]
+items_data = [{'name': 'banana', 'price': 3.19, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'luk crveni', 'price': 1.79, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'mrkva', 'price': 1.89, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'krompir mladi bijeli', 'price': 1.99, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'krompir bijeli lijevce', 'price': 1.65, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'krompir glamocki crveni', 'price': 2.49, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'kupus mladi', 'price': 1.99, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'jabuka ajdared', 'price': 1.99, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'lubenica sarena', 'price': 4.59, 'unit': 'kg', 'type': 'fruits and vegetables'}, {'name': 'narandza spanska', 'price': 4.29, 'unit': 'kg', 'type': 'fruits and vegetables'}]
 
 query_find_items = """SELECT id, name FROM items WHERE name IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) AND store = ?;"""
 
-
-        print("Called insert_item_prices on", items_list[:10])
-        batch_size = 100
-        for i in range(0, len(items_list), batch_size):
-            batch = items_list[i:i+batch_size]
-            names = [item['name'] for item in batch]
-
-            placeholders = ', '.join(['?'] * len(batch))
-            query = f"SELECT id, name FROM items WHERE name IN ({placeholders}) AND store = ?;"
-            print("Created batch", batch[:10])
-            print("Running query", query)
-            self.cur.execute(query, (*names, store))
-            result = self.cur.fetchall()
-            print("Result:", result)
-            
-            items_id = {name: sid for sid, name in result}
-            batch_items_data = [(items_id[item['name']], item['price'], date) for item in batch]
-            query = "INSERT INTO item_prices (item_id, price, date) VALUES (?, ?, ?);"
-            self.cur.executemany(query, batch_items_data)
-
-        self.conn.commit()

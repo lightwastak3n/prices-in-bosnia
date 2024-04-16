@@ -328,9 +328,15 @@ class Server:
             items_list (list): A list of dictionaries containing information about items.
             store (str): The name of the store in which the items are sold.
         """
-        for item in items_list:
-            self.cur.execute("INSERT INTO items (name, type, unit, store) VALUES (?, ?, ?, ?);", (item['name'], item['type'], item['unit'], store))
-        self.conn.commit()
+        batch_size = 30
+        for i in range(0, len(items_list), batch_size):
+            batch = items_list[i:i+batch_size]
+            query = "INSERT INTO items (name, type, unit, store) VALUES (?, ?, ?, ?);" 
+            insert_data = []
+            for item in batch:
+                insert_data.append((item['name'], item['type'], item['unit'], store))
+            self.cur.executemany(query, insert_data)
+            self.conn.commit()
 
     def insert_item_prices(self, items_list, store, date):
         """
@@ -341,7 +347,7 @@ class Server:
             store (str): The name of the store in which the items are sold.
         """
         # We are going to insert 100 items at a time.
-        batch_size = 50
+        batch_size = 30
         for i in range(0, len(items_list), batch_size):
             batch = items_list[i:i+batch_size]
             names = [item['name'] for item in batch]
@@ -356,8 +362,7 @@ class Server:
 
             query = "INSERT INTO item_prices (item_id, price, date) VALUES (?, ?, ?);"
             self.cur.executemany(query, batch_items_data)
-
-        self.conn.commit()
+            self.conn.commit()
 
     def get_records_on_date(self, table, date_column, date):
         """

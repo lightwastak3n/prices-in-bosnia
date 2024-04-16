@@ -18,12 +18,9 @@ def send_stats_mysql():
 
 
 def send_stats_turso():
-    with open("db_server/config.json", "r") as f:
-        data = json.load(f)
-    turso_db_org = data["turso_db_org"]
-    turso_db_token = data["turso_db_token"]
-    server = TursoServer(turso_db_org, turso_db_token)
+    server = TursoServer()
     data = server.get_totals() 
+    print("Got data for sendind", data)
     msg = f"Cars: {data[0][1]}\nHouses: {data[0][2]}\nFlats: {data[0][3]}\nLand: {data[0][4]}\nItems: {data[0][5]}\n"
     send_ntfy(f"{msg}")
 

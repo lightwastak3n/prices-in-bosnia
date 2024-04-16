@@ -20,8 +20,8 @@ car_scraper = CarScraper()
 
 while True:
     try:
-        server = Server()
         car_scraper.get_cars_from_main()
+        server = Server()
         new_ids = car_scraper.filter_new_cars(server)
         new_found = len(new_ids)
 
@@ -47,6 +47,7 @@ while True:
 
         print(f"Found {new_found} new cars. Left to scrape {len(not_scraped)}.")
         print(f"Will scrape {possible_fit} cars for {allocated_time} seconds.")
+        print(f"Cars to scrape {not_scraped[:possible_fit]}")
         for car in not_scraped[:possible_fit]:
             sleep(pause_between_cars)
             car_id = car[0]

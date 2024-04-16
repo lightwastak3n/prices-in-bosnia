@@ -1,10 +1,10 @@
 import csv
+import os
 import calendar
+import libsql_experimental as libsql
 from time import sleep
-
 from datetime import datetime
-from db_server.sql_server import Server
-# from db_server.turso_server import Server
+# from db_server.sql_server import Server
 from time import sleep
 
 cars_columns = [
@@ -231,16 +231,22 @@ olx_columns = {
 }
 
 
+def sync_server():
+    local_database = "/home/sasa/Documents/Bosnia_prices/database/sync_prices_bosnia.db"
+    db_org = os.getenv("turso_db_org")
+    token = os.getenv("turso_db_token")
+    db_link = "libsql://" + db_org + ".turso.io"
+    conn = libsql.connect(local_database, sync_url=db_link, auth_token=token)
+    conn.sync()
+
+
 def get_month_range(year, month):
     # Determine the number of days in the month
     _, num_days = calendar.monthrange(year, month)
-
     # Format the first day of the month
     first_day = f"{year}-{month:02d}-01"
-
     # Format the last day of the month
     last_day = f"{year}-{month:02d}-{num_days:02d}"
-
     return first_day, last_day
 
 
@@ -300,8 +306,5 @@ def download_everything(date):
 #
 # for date in dates:
 #     download_everything(date)
-#
 
-server = Server()
-car_links = server.get_all_rs_links()
-write_csv(car_links, "sql_dumps/rs_links.csv")
+sync_server()
