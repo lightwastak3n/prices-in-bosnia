@@ -247,6 +247,7 @@ class Server:
         sql = f"INSERT INTO cars({columns}) VALUES({placeholders});"
         values = tuple(data.values())
         try:
+            print(f"Inserting {values} using {sql}")
             cur.execute(sql, values)
             conn.commit()
             if write_log_info:

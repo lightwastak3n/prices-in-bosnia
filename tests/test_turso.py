@@ -2,46 +2,52 @@ import json
 import pytest
 from time import sleep
 
-from db_server import turso_server
+from db_server.turso_server import Server
 
 
-@pytest.fixture(scope='session')
-def get_server():
-    test_org = "testprices-light"
-    test_token = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3MTI5NjYyMzYsImlkIjoiMzVmMzU4ODUtOTdmYi00MTA5LTgxNzctYWQwYjczZDU0OGZlIn0.P1ZW_5OVXTwpfvgLpfqLojwsV3gRhLoONBPGkb0mUfgV5TfO7UpzR_Ah5lfjoo5Ydmxh44fB3iLAz413MvN5Dw"
-    server = turso_server.Server(test_org, test_token)
-    sleep(3)
-    yield server
+test_org = "testprices-light"
+test_token = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3MTI5NjYyMzYsImlkIjoiMzVmMzU4ODUtOTdmYi00MTA5LTgxNzctYWQwYjczZDU0OGZlIn0.P1ZW_5OVXTwpfvgLpfqLojwsV3gRhLoONBPGkb0mUfgV5TfO7UpzR_Ah5lfjoo5Ydmxh44fB3iLAz413MvN5Dw"
+server = Server(test_org, test_token)
+
+# @pytest.fixture(scope='session')
+# def get_server():
+#     test_org = "testprices-light"
+#     test_token = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3MTI5NjYyMzYsImlkIjoiMzVmMzU4ODUtOTdmYi00MTA5LTgxNzctYWQwYjczZDU0OGZlIn0.P1ZW_5OVXTwpfvgLpfqLojwsV3gRhLoONBPGkb0mUfgV5TfO7UpzR_Ah5lfjoo5Ydmxh44fB3iLAz413MvN5Dw"
+#     server = turso_server.Server(test_org, test_token)
+#     sleep(3)
+#     yield server
 
 
-def create_tables(get_server):
-    server = get_server
+def create_tables():
+    conn = server.get_connection()
     with open('create_tables.sql', 'r') as file:
         script = file.read()
-    server.conn.executescript(script)
-    server.conn.commit()
+    conn.executescript(script)
+    conn.commit()
 
 
-def delete_tables(get_server):
-    server = get_server
-    server.cur.execute("DROP TABLE cars;")
-    server.cur.execute("DROP TABLE links_cars;")
-    server.cur.execute("DROP TABLE land;")
-    server.cur.execute("DROP TABLE flats;")
-    server.cur.execute("DROP TABLE houses;")
-    server.cur.execute("DROP TABLE rs_links;")
-    server.cur.execute("DROP TABLE item_prices;")
-    server.cur.execute("DROP TABLE items;")
-    server.cur.execute("DROP TABLE scraping_stats;")
-    server.conn.commit()
+def delete_tables():
+    conn = server.get_connection()
+    cur = conn.cursor()
+    cur.execute("DROP TABLE cars;")
+    cur.execute("DROP TABLE links_cars;")
+    cur.execute("DROP TABLE land;")
+    cur.execute("DROP TABLE flats;")
+    cur.execute("DROP TABLE houses;")
+    cur.execute("DROP TABLE rs_links;")
+    cur.execute("DROP TABLE item_prices;")
+    cur.execute("DROP TABLE items;")
+    cur.execute("DROP TABLE scraping_stats;")
+    conn.commit()
 
 
-def test_tables_in_db(get_server):
-    server = get_server
-    create_tables(get_server)
+def test_tables_in_db():
+    create_tables()
+    conn = server.get_connection()
+    cur = conn.cursor()
     query = "SELECT * FROM sqlite_master WHERE type='table';"
-    server.cur.execute(query)
-    result = server.cur.fetchall()
+    cur.execute(query)
+    result = cur.fetchall()
     tables = []
     for item in result:
         tables.append(item[1])
@@ -50,76 +56,73 @@ def test_tables_in_db(get_server):
     assert all([table in tables for table in test_tables]) == True
 
 
-def insert_car_links(get_server):
-    server = get_server
+def insert_car_links():
     with open("test_data.json", "r", encoding="utf-8") as f:
         data = json.load(f)
-    cars_data = [[car, data["cars"][car], 1] for car in data["cars"]]
+    cars_data = [(car, data["cars"][car], 1) for car in data["cars"]]
     server.add_car_links(cars_data)
     server.add_car_link("11111", "google.com", "0")
 
 
-def test_car_link_in_db(get_server):
-    insert_car_links(get_server)
-    server = get_server
+def test_car_link_in_db():
+    insert_car_links()
     not_there = server.item_in_db("links_cars", "1234567")
     there = server.item_in_db("links_cars", "11111")
     assert [not_there, there] == [False, True] 
 
 
-def test_cars_in_db(get_server):
-    server = get_server
+def test_cars_in_db():
     ids = ["51329772", "51856919", "51810247", "987654"]
     not_present = server.items_not_in_db("links_cars", ids)
     assert not_present == ["987654"]
 
 
-def test_get_non_scraped_cars(get_server):
-    server = get_server
+def test_get_non_scraped_cars():
     not_scraped = server.get_non_scraped_cars()
     assert not_scraped == [(11111, "google.com")]
 
 
-def insert_single_car(get_server):
-    server = get_server
+def insert_single_car():
+    # TODO: This doesnt seem to work
     with open("test_data.json", "r", encoding="utf-8") as f:
         data = json.load(f)
-    server.insert_car_data(data["car1"])
+    car_data = data["car1"]
+    for prop in car_data:
+        val = car_data[prop] if car_data[prop] else ""
+        car_data[prop] = val 
+    server.insert_car_data(car_data)
 
 
-def test_get_car_data(get_server):
-    insert_single_car(get_server)
-    server = get_server
+def test_get_car_data():
+    insert_single_car()
     car_data = server.get_car_data(53421314)
+    car_data = [p for p in car_data[0]]
     answer = []
     check_items = [17300, "Gradacac", "Karavan", "Dizel", "2023-02-19"]
     for item in check_items:
         answer.append(item in car_data)
     assert all(answer) == True
 
-def insert_rs_data(get_server):
+def insert_rs_data():
     with open("test_data.json", "r", encoding="utf-8") as f:
         data = json.load(f)
-    server = get_server
     server.insert_rs_data("Zemljiste", data["land1"])
     server.insert_rs_data("Stan", data["flat1"])
     server.insert_rs_data("Kuca", data["house1"])
 
 
-def insert_rs_links(get_server):
+def insert_rs_links():
     with open("test_data.json", "r", encoding="utf-8") as f:
         data = json.load(f)
     rs_data = data["rs_links"]
     rs_data = [[rs, rs_data[rs][0], rs_data[rs][1], rs_data[rs][2]] for rs in rs_data]
-    server = get_server
     server.add_rs_links(rs_data)
     server.add_rs_link(112233, "yahoo.com", "Kuca", "0")
-    insert_rs_data(get_server)
+    insert_rs_data()
     
 
-def test_get_non_scraped_rs(get_server):
-    server = get_server
-    insert_rs_links(get_server)
+def test_get_non_scraped_rs():
+    insert_rs_links()
     not_scraped = server.get_non_scraped_rs()
     answer = [
             (561091, 'https://www.olx.ba/artikal/561091/', 'Kuca'),
@@ -132,8 +135,7 @@ def test_get_non_scraped_rs(get_server):
     assert answer == not_scraped
 
 
-def test_mark_as_scraped(get_server):
-    server = get_server
+def test_mark_as_scraped():
     server.mark_as_scraped("rs_links", 112233)
     server.mark_as_scraped("rs_links", 667413)
     not_scraped = server.get_non_scraped_rs()
@@ -146,8 +148,7 @@ def test_mark_as_scraped(get_server):
     assert answer == not_scraped
 
 
-def test_get_land_data(get_server):
-    server = get_server
+def test_get_land_data():
     rs_data = server.get_rs_data("Zemljiste", 53070662)
     check_items = [1412, "Ilidza", "Asfalt"]
     answer = []
@@ -156,8 +157,7 @@ def test_get_land_data(get_server):
     assert all(answer) == True
 
 
-def test_get_flat_data(get_server):
-    server = get_server
+def test_get_flat_data():
     rs_data = server.get_rs_data("Stan", 48894962)
     check_items = [190, "Ilidza", "Blazujski drum", "Novogradnja"]
     answer = []
@@ -166,8 +166,7 @@ def test_get_flat_data(get_server):
     assert all(answer) == True
 
 
-def test_get_house_data(get_server):
-    server = get_server
+def test_get_house_data():
     rs_data = server.get_rs_data("Kuca", 51868032)
     check_items = [155000, "Laktasi", "Kuca sa dvoristem Laktasi", "Drva"]
     answer = []
@@ -187,24 +186,21 @@ def get_fruits_dict():
     return items_data
 
 
-def test_check_if_items_exits(get_server):
+def test_check_if_items_exits():
     items_data = get_fruits_dict()
-    server = get_server
     new_items = server.check_if_items_exist(items_data, "tropic")
     assert new_items == items_data
 
 
-def test_insert_items(get_server):
+def test_insert_items():
     fruits = get_fruits_dict()
-    server = get_server
     server.insert_items(fruits, "tropic")
     new_items = server.check_if_items_exist(fruits, "tropic")
     assert new_items == []
 
 
-def test_insert_item_prices(get_server):
+def test_insert_item_prices():
     fruits = get_fruits_dict()
-    server = get_server
     store = "tropic"
     today = "2024-04-04"
     server.insert_item_prices(fruits, store, today)
@@ -214,11 +210,12 @@ def test_insert_item_prices(get_server):
     assert items_on_server == items_sent
 
 
-def test_delete_tables(get_server):
-    delete_tables(get_server)
-    cursor = get_server.cur
-    cursor.execute( "SELECT * FROM sqlite_master WHERE type='table';")
-    result = cursor.fetchall()
+def test_delete_tables():
+    delete_tables()
+    conn = server.get_connection()
+    cur = conn.cursor()
+    cur.execute( "SELECT * FROM sqlite_master WHERE type='table';")
+    result = cur.fetchall()
     tables = []
     for item in result:
         tables.append(item[0])
