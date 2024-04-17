@@ -65,16 +65,15 @@ class CarScraper:
         for id in car_ids:
             self.cars[id[:-1]] = f"https://olx.ba/artikal/{id[:-1]}/"
 
-    def filter_new_cars(self, server) -> list:
+    def get_found_ids(self) -> list:
         """
-        Checks id of each car found against the ids already present in the database and returns the new ones.
+        Get the list of found ids.
 
         Returns:
-            new_ids: List of all the new ids found
+            ids: List of all the new ids found
         """
         ids = list(self.cars)
-        new_ids = server.items_not_in_db("links_cars", ids)
-        return new_ids
+        return ids
     
     def akcijska_cijena(self, car_soup, data):
         """

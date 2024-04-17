@@ -75,7 +75,7 @@ class RealEstateScraper:
             for id in listings_ids:
                 self.real_estates[rs_type][id[:-1]] = f"https://olx.ba/artikal/{id[:-1]}/"
 
-    def filter_new_real_estates(self, server) -> tuple:
+    def get_found_ids(self) -> tuple:
         """
         Checks id of each real estate found against the ids already present in the database.
 
@@ -85,12 +85,7 @@ class RealEstateScraper:
         house_ids = list(self.real_estates['Kuca'])
         flat_ids = list(self.real_estates['Stan'])
         land_ids = list(self.real_estates['Zemljiste'])
-
-        new_houses = server.items_not_in_db('rs_links', house_ids)
-        new_flats = server.items_not_in_db('rs_links', flat_ids)
-        new_lands = server.items_not_in_db('rs_links', land_ids)
-
-        return new_houses, new_flats, new_lands
+        return house_ids, flat_ids, land_ids
 
     def akcijska_cijena(self, rs_soup, data):
         """

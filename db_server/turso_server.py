@@ -49,6 +49,7 @@ class Server:
         Returns:
             bool: True if the item is in database already. False otherwise.
         """
+        print(f"Checking if {item_id} in {table}")
         conn = self.get_connection()
         cur = conn.cursor()
         cur.execute(f"SELECT id FROM {table} WHERE id='{item_id}'")
@@ -68,11 +69,17 @@ class Server:
         Returns:
             list: list of ids that are not in the table
         """
+        print(f"Checking if {ids_list} in {table}")
+        conn = self.get_connection()
+        cur = conn.cursor()
         new_ids = []
         for sid in ids_list:
-            present = self.item_in_db(table, sid)
-            if not present:
+            print(f"Checking {sid}")
+            cur.execute(f"SELECT id FROM {table} WHERE id={sid}")
+            result = cur.fetchone()
+            if not result:
                 new_ids.append(sid)
+        print(f"Found new new ids - {new_ids}")
         return new_ids
 
     def get_non_scraped_cars(self):
@@ -127,13 +134,16 @@ class Server:
         """
         conn = self.get_connection()
         cur = conn.cursor()
-        for car_id, link, scraped in cars:
-            cur.execute("INSERT INTO links_cars VALUES(?, ?, ?);",
-                        (car_id, link, scraped))
+        batch_size = 30
+        for i in range(0, len(cars), batch_size):
+            batch = cars[i:i+batch_size]
+            query = "INSERT INTO links_cars VALUES(?, ?, ?);" 
+            cur.executemany(query, batch)
+            conn.commit()
             if write_log_info:
-                write_log_info(f"{car_id} - {link} added to the database.")
-            print(f"{car_id} - {link} added to the database.")
-        conn.commit()
+                write_log_info(f"{batch} added to the database.")
+            print(f"{batch} added to the database.")
+        print("Finished adding new cars to the database.")
 
     def add_rs_link(self, rs_id, rs_link, rs_type, scraped, write_log_info=None):
         """
@@ -193,8 +203,7 @@ class Server:
         """
         conn = self.get_connection()
         cur = conn.cursor()
-        cur.execute(
-            f"UPDATE {table} SET scraped=1 WHERE id={item_id};")
+        cur.execute(f"UPDATE {table} SET scraped=1 WHERE id={item_id};")
         conn.commit()
 
     def update_seller_info(self, car_id, value):

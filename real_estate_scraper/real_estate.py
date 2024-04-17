@@ -244,11 +244,11 @@ class RealEstate:
         """
         self.data = data
         self.type = rs_type
+        self.clean_dict_keys()
         self.rename_columns()
         self.fix_name()
         self.fix_price_and_area()
         self.fix_int_cols()
-
         self.fix_number_of_floors()
         self.fix_number_of_rooms()
         self.fix_namjesten()
@@ -256,18 +256,21 @@ class RealEstate:
         self.fix_radio_columns()
         self.fix_serbian_letters()
 
+    def clean_dict_keys(self):
+        """
+        Removes the keys that arent present in specs_columns_mapping
+        """
+        clean_data = {}
+        for key in self.data:
+            if key in columns:
+                clean_data[key] = self.data[key]
+        self.data = clean_data
+
     def rename_columns(self):
         """
         Changes the names of the keys (real estate attributes) in self.data.
         The original names are as found on olx so we rename them to something easier to work with.
         """
-        col_to_remove = []
-        for col in self.data:
-            if col not in columns:
-                col_to_remove.append(col)
-        for col in col_to_remove:
-            del self.data[col]
-
         new_data = {}
         for spec in self.data:
             new_data[columns[spec]] = self.data[spec]
@@ -314,10 +317,6 @@ class RealEstate:
         if "okucnica_kvadratura" in self.data:
             self.data["okucnica_kvadratura"] = self.fix_int(
                 self.data["okucnica_kvadratura"])
-        # Remove columns
-        for col in self.data:
-            if col not in columns:
-                del self.data[col]
 
     def fix_number_of_rooms(self):
         """
@@ -383,3 +382,4 @@ class RealEstate:
             if isinstance(self.data[key], str):
                 self.data[key] = ''.join(latin_chars.get(
                     char, char) for char in self.data[key])
+

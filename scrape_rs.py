@@ -17,19 +17,22 @@ def send_ntfy(msg):
     sleep(10)
 
 real_estate_scraper = RealEstateScraper()
+server = Server()
 
 while True:
     try:
-        server = Server()
         real_estate_scraper.get_real_estates_from_main()
-        new_houses, new_flats, new_lands = real_estate_scraper.filter_new_real_estates(server)
+        found_houses, found_flats, found_lands = real_estate_scraper.get_found_ids()
+        new_houses = server.items_not_in_db("houses", found_houses) 
+        new_flats = server.items_not_in_db("flats", found_flats) 
+        new_lands = server.items_not_in_db("land", found_lands) 
         new_found = len(new_houses) + len(new_flats) + len(new_lands)
 
         print("Scraped main rs pages. And checked for new listings.")
         # Make [id, link, type, 0] list to add to the server
-        add_houses = [[house_id, f"https://olx.ba/artikal/{house_id}/", "Kuca", 0] for house_id in new_houses]
-        add_flats = [[flat_id, f"https://olx.ba/artikal/{flat_id}/", "Stan", 0] for flat_id in new_flats]
-        add_lands = [[land_id, f"https://olx.ba/artikal/{land_id}/", "Zemljiste", 0] for land_id in new_lands]
+        add_houses = [(house_id, f"https://olx.ba/artikal/{house_id}/", "Kuca", 0) for house_id in new_houses]
+        add_flats = [(flat_id, f"https://olx.ba/artikal/{flat_id}/", "Stan", 0) for flat_id in new_flats]
+        add_lands = [(land_id, f"https://olx.ba/artikal/{land_id}/", "Zemljiste", 0) for land_id in new_lands]
         
 
         server.add_rs_links(add_houses, write_log_info)
@@ -62,7 +65,6 @@ while True:
             rs_type = item[2]
             print(f"Scraping {rs_link}.")
             data = real_estate_scraper.scrape_real_estate(rs_id, rs_link, rs_type, write_log_info)
-            server = Server()
             if data:
                 new_rs = RealEstate(data, rs_type)
                 print("Inserting", new_rs.data)

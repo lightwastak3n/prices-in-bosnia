@@ -96,15 +96,11 @@ class Car:
         Initializes Car object and cleans the data.
         """
         self.data = data
-        print("cleaning keys")
+        print("Cleaning data and creating Car object.")
         self.clean_dict_keys()
-        print("renaming columns")
         self.rename_columns()
-        print("fixing basic data")
         self.fix_basic_data()
-        print("fixing year")
         self.fix_year()
-        print("fixing power")
         self.fix_power()
         self.fix_first_registration()
         self.fix_radio_columns()

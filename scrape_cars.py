@@ -5,7 +5,6 @@ from time import sleep
 
 from car_scraper.carScraper_v2 import CarScraper
 from car_scraper.car import Car
-# from db_server.sql_server import Server
 from db_server.turso_server import Server
 from utils.log_maker import write_log_error, write_log_info
 
@@ -22,11 +21,14 @@ while True:
     try:
         car_scraper.get_cars_from_main()
         server = Server()
-        new_ids = car_scraper.filter_new_cars(server)
+        found_ids = car_scraper.get_found_ids()
+        new_ids = server.items_not_in_db("links_cars", found_ids) 
         new_found = len(new_ids)
+        # This is where the warning happens
+        print("Found", new_found, "cars")
 
         # Make [id, link, 0] list to add to the server
-        add_ids = [[car_id, car_scraper.cars[car_id], 0] for car_id in new_ids]
+        add_ids = [(car_id, car_scraper.cars[car_id], 0) for car_id in new_ids]
         server.add_car_links(add_ids, write_log_info)
         
         not_scraped = server.get_non_scraped_cars()
@@ -55,7 +57,6 @@ while True:
             print(f"Scraping {car_link}.")
             data = car_scraper.scrape_car(car_id, car_link, write_log_info)
             print("Got data")
-            server = Server()
             if data:
                 new_car = Car(data)
                 server.insert_car_data(new_car.data, write_log_info, write_log_error)
