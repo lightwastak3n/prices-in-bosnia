@@ -15,12 +15,11 @@ def send_ntfy(msg):
     requests.post(url=url, data=msg, headers=headers)
 
 car_scraper = CarScraper()
-
+server = Server()
 
 while True:
     try:
         car_scraper.get_cars_from_main()
-        server = Server()
         found_ids = car_scraper.get_found_ids()
         new_ids = server.items_not_in_db("links_cars", found_ids) 
         new_found = len(new_ids)

@@ -1,132 +1,3 @@
-# columns = {"Stan":
-#            {
-#             "id": "id",
-#             "Ime": "ime",
-#             "datum": "datum",
-#             "Cijena": "cijena",
-#             "Stanje": "stanje",
-#             "Lokacija": "lokacija",
-#             "Kuhinja": "kuhinja",
-#             "WC / Kupatilo": "kupatilo",
-#             "lat": "lat",
-#             "lng": "lng",
-#             "Kvadrata": "kvadrata",
-#             "Broj soba": "broj_soba",
-#             "Sprat": "sprat",
-#             "kompanija": "kompanija",
-#             "Vrsta grijanja": "vrsta_grijanja",
-#             "Namješten": "namjesten",
-#             "Namješten?": "namjesten",
-#             "Namještena": "namjesten",
-#             "Opremljenost": "namjesten",
-#             "Kanalizacija": "kanalizacija",
-#             "Parking": "parking",
-#             "Struja": "struja",
-#             "Uknjiženo / ZK": "uknjizeno",
-#             "Voda": "voda",
-#             "Vrsta oglasa": "vrsta_oglasa",
-#             "Datum objave": "datum_objave",
-#             "Broj pregleda": "broj_pregleda",
-#             "Balkon": "balkon",
-#             "Blindirana vrata": "blindirana_vrata",
-#             "Internet": "internet",
-#             "Kablovska TV": "kablovska",
-#             "Nedavno adaptiran": "nedavno_adaptiran",
-#             "Nedavno adaptiran": "nedavno_adaptiran",
-#             "Plin": "plin",
-#             "Podrum/Tavan": "podrum",
-#             "Uključen trošak režija": "rezije",
-#             "Adresa": "adresa",
-#             "Godina izgradnje": "godina_izgradnje",
-#             "Vrsta poda": "vrsta_poda",
-#             "Primarna orjentacija": "primarna_orijentacija",
-#             "Klima": "klima",
-#             "Lift": "lift",
-#             "Telefonski priključak": "telefon",
-#             "Video nadzor": "video_nadzor",
-#             "Za studente": "za_studente",
-#             "Kvadratura balkona": "kvadratura_balkona",
-#             "Ostava/Špajz": "ostava",
-#             "Ostava/špajz": "ostava",
-#             "Kućni ljubimci": "kucni_ljubimci",
-#             "Novogradnja": "novogradnja",
-#             "Alarm": "alarm",
-#             "Garaža": "garaza",
-#             "Obnovljen": "obnovljen",
-#            },
-#            "Kuca":
-#            {
-#             "id": "id",
-#             "Ime": "ime",
-#             "datum": "datum",
-#             "Cijena": "cijena",
-#             "Stanje": "stanje",
-#             "Lokacija": "lokacija",
-#             "lat": "lat",
-#             "lng": "lng",
-#             "Kvadrata": "kvadrata",
-#             "Broj soba": "broj_soba",
-#             "Broj spratova": "broj_spratova",
-#             "kompanija": "kompanija",
-#             "Vrsta grijanja": "vrsta_grijanja",
-#             "Okućnica (kvadratura)": "okucnica_kvadratura",
-#             "Vrsta poda": "vrsta_poda",
-#             "Balkon": "balkon",
-#             "Iznajmljeno": "iznajmljeno",
-#             "Kablovska TV": "kablovska",
-#             "Ostava/Špajz": "ostava",
-#             "Ostava/špajz": "ostava",
-#             "Parking": "parking",
-#             "Podrum/Tavan": "podrum",
-#             "Struja": "struja",
-#             "Uknjiženo / ZK": "uknjizeno",
-#             "Voda": "voda",
-#             "Vrsta oglasa": "vrsta_oglasa",
-#             "Datum objave": "datum_objave",
-#             "Broj pregleda": "broj_pregleda",
-#             "Kanalizacija": "kanalizacija",
-#             "Alart": "alarm",
-#             "Blindirana vrata": "blindirana_vrata",
-#             "Garaža": "garaza",
-#             "Internet": "internet",
-#             "Klima": "klima",
-#             "Namještena": "namjestena",
-#             "Nedavno adaptirana": "nedavno_adaptirana",
-#             "Plin": "plin",
-#             "Telefonski priključak": "telefon",
-#             "Video nadzor": "video_nadzor",
-#             "Adresa": "adresa",
-#             "Godina izgradnje": "godina_izgradnje",
-#             "Primarna orjentacija": "primarna_orijentacija",
-#             "Bazen": "bazen",
-#             "Obnovljen": "obnovljen",
-#            },
-#            "Zemljiste":
-#            {
-#             "id": "id",
-#             "Ime": "ime",
-#             "datum": "datum",
-#             "Cijena": "cijena",
-#             "Stanje": "stanje",
-#             "Lokacija": "lokacija",
-#             "lat": "lat",
-#             "lng": "lng",
-#             "Prilaz": "prilaz",
-#             "Kvadrata": "kvadrata",
-#             "kompanija": "kompanija",
-#             "Komunalni priključak": "komunalni_prikljucak",
-#             "Uknjiženo (ZK)": "uknjizeno",
-#             "Vrsta oglasa": "vrsta_oglasa",
-#             "Datum objave": "datum_objave",
-#             "Broj pregleda": "broj_pregleda",
-#             "Udaljenost od rijeke (m)": "udaljenost_rijeka",
-#             "Građevinska dozvola": "gradjevinska_dozvola",
-#             "Urbanistička dozvola": "urbanisticka_dozvola",
-#             "Iznajmljeno": "iznajmljeno",
-#             "Obnovljen": "obnovljen",
-#             }
-#            }
-
 columns = {
     "id": "id",
     "Ime": "ime",
@@ -262,7 +133,7 @@ class RealEstate:
         """
         clean_data = {}
         for key in self.data:
-            if key in columns:
+            if key in columns and self.data[key] != None:
                 clean_data[key] = self.data[key]
         self.data = clean_data
 
@@ -277,7 +148,12 @@ class RealEstate:
         self.data = new_data
 
     def fix_name(self):
-        self.data["ime"] = self.data["ime"].replace('"', "")
+        abc = "ABCČĆDDŽĐEFGHIJKLLJMNNJOPRSŠTUVZŽ"
+        allowed = abc + abc.lower() + "0123456789" + "wyq"
+        name = self.data["ime"]
+        for char in allowed:
+            name = name.replace(char, "")
+        self.data["ime"] = name
 
     def fix_price_and_area(self):
         """

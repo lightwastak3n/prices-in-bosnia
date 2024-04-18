@@ -58,7 +58,7 @@ class Server:
             return True
         return False
 
-    def items_not_in_db(self, table, ids_list):
+    def items_not_in_db(self, table, ids_list) -> list:
         """
         Checks which ids from a list are in a table.
 
@@ -73,12 +73,12 @@ class Server:
         conn = self.get_connection()
         cur = conn.cursor()
         new_ids = []
-        for sid in ids_list:
-            print(f"Checking {sid}")
-            cur.execute(f"SELECT id FROM {table} WHERE id={sid}")
+        for car_id in ids_list:
+            print(f"Checking {car_id}")
+            cur.execute(f"SELECT id FROM {table} WHERE id={car_id}")
             result = cur.fetchone()
             if not result:
-                new_ids.append(sid)
+                new_ids.append(car_id)
         print(f"Found new new ids - {new_ids}")
         return new_ids
 
