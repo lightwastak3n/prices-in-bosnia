@@ -2,22 +2,28 @@ import os
 import libsql_experimental as libsql
 from time import sleep
 
+
 class Server:
     def __init__(self, db_org=None, token=None):
         self.db_org = db_org if db_org else os.getenv("turso_db_org")
         self.token = token if token else os.getenv("turso_db_token")
         self.db_link = "libsql://" + self.db_org + ".turso.io"
-        self.rs_mapping = {"Kuca": "houses", "Stan": "flats", "Zemljiste": "land", "Apartman": "flats"}
+        self.rs_mapping = {
+            "Kuca": "houses",
+            "Stan": "flats",
+            "Zemljiste": "land",
+            "Apartman": "flats",
+        }
 
     def get_connection(self):
         # self.conn = libsql.connect("prices_bosnia.db")
         # self.cur = self.conn.cursor()
         conn = libsql.connect(database=self.db_link, auth_token=self.token)
-        return conn 
+        return conn
 
     def execute_script(self, file_path):
         conn = self.get_connection()
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             script = file.read()
         conn.executescript(script)
         conn.commit()
@@ -31,7 +37,7 @@ class Server:
             query = "INSERT INTO rs_links (id, link, type, scraped) VALUES(?, ?, ?, ?)"
         batch_size = 50
         for i in range(0, len(links), batch_size):
-            batch = links[i:i+batch_size]
+            batch = links[i : i + batch_size]
             cur.executemany(query, batch)
             conn.commit()
             print(f"Inserted {i} links.")
@@ -94,7 +100,7 @@ class Server:
         cur.execute("SELECT id,link FROM links_cars WHERE scraped=0;")
         result = cur.fetchall()
         return result
-    
+
     def get_non_scraped_rs(self):
         """
         Gets the list of rs that havent been scraped yet.
@@ -136,8 +142,8 @@ class Server:
         cur = conn.cursor()
         batch_size = 30
         for i in range(0, len(cars), batch_size):
-            batch = cars[i:i+batch_size]
-            query = "INSERT INTO links_cars VALUES(?, ?, ?);" 
+            batch = cars[i : i + batch_size]
+            query = "INSERT INTO links_cars VALUES(?, ?, ?);"
             cur.executemany(query, batch)
             conn.commit()
             if write_log_info:
@@ -156,8 +162,10 @@ class Server:
         """
         conn = self.get_connection()
         cur = conn.cursor()
-        cur.execute("INSERT INTO rs_links VALUES(?, ?, ?, ?);",
-                           (rs_id, rs_link, rs_type, scraped))
+        cur.execute(
+            "INSERT INTO rs_links VALUES(?, ?, ?, ?);",
+            (rs_id, rs_link, rs_type, scraped),
+        )
         conn.commit()
         if write_log_info:
             write_log_info(f"{rs_id} - {rs_link} added to the database.")
@@ -173,8 +181,10 @@ class Server:
         conn = self.get_connection()
         cur = conn.cursor()
         for rs_id, rs_link, rs_type, scraped in rs:
-            cur.execute("INSERT INTO rs_links VALUES(?, ?, ?, ?);",
-                        (rs_id, rs_link, rs_type, scraped))
+            cur.execute(
+                "INSERT INTO rs_links VALUES(?, ?, ?, ?);",
+                (rs_id, rs_link, rs_type, scraped),
+            )
             if write_log_info:
                 write_log_info(f"{rs_id} - {rs_link} added to the database.")
             print(f"{rs_id} - {rs_link} added to the database.")
@@ -189,11 +199,13 @@ class Server:
         """
         conn = self.get_connection()
         cur = conn.cursor()
-        cur.execute("""SELECT links_cars.id, links_cars.link
+        cur.execute(
+            """SELECT links_cars.id, links_cars.link
                                 FROM cars
                                 LEFT JOIN links_cars
                                 ON links_cars.id = cars.id
-                                WHERE cars.radnja is NULL;""")
+                                WHERE cars.radnja is NULL;"""
+        )
         result = cur.fetchall()
         return result
 
@@ -216,8 +228,7 @@ class Server:
         """
         conn = self.get_connection()
         cur = conn.cursor()
-        cur.execute(
-            f"UPDATE cars SET radnja={value} WHERE id={car_id};")
+        cur.execute(f"UPDATE cars SET radnja={value} WHERE id={car_id};")
         conn.commit()
 
     def get_car_data(self, car_id):
@@ -312,7 +323,9 @@ class Server:
         cur.execute("SELECT COUNT(id) FROM cars;")
         result = cur.fetchall()
         total_cars = result[0][0]
-        cur.execute("SELECT (SELECT COUNT(id) FROM houses) + (SELECT COUNT(id) FROM flats) + (SELECT COUNT(id) FROM land);")
+        cur.execute(
+            "SELECT (SELECT COUNT(id) FROM houses) + (SELECT COUNT(id) FROM flats) + (SELECT COUNT(id) FROM land);"
+        )
         result = cur.fetchall()
         total_rs = result[0][0]
         return f"Cars scraped {total_cars}. Left to scrape {non_scraped_cars}.\nRs scraped {total_rs}. Left to scrape {non_scraped_rs}."
@@ -332,7 +345,7 @@ class Server:
             FROM items
             JOIN item_prices ON items.id = item_prices.item_id
             WHERE items.store = '{store}';
-        """        
+        """
         conn = self.get_connection()
         cur = conn.cursor()
         cur.execute(query)
@@ -360,17 +373,19 @@ class Server:
         """
         conn = self.get_connection()
         cur = conn.cursor()
-        items_names = [item['name'] for item in items_list]
+        items_names = [item["name"] for item in items_list]
         cur.execute(f"SELECT name FROM items WHERE store = '{store}';")
         data = cur.fetchall()
         if data:
             existing_items = [x[0] for x in data]
             missing_items = set(items_names) - set(existing_items)
-            items_to_add = [item for item in items_list if item['name'] in missing_items]
+            items_to_add = [
+                item for item in items_list if item["name"] in missing_items
+            ]
         else:
             items_to_add = items_list
         return items_to_add
-    
+
     def insert_items(self, items_list, store):
         """
         Inserts item name, type, unit, store into items table.
@@ -383,11 +398,11 @@ class Server:
         cur = conn.cursor()
         batch_size = 30
         for i in range(0, len(items_list), batch_size):
-            batch = items_list[i:i+batch_size]
-            query = "INSERT INTO items (name, type, unit, store) VALUES (?, ?, ?, ?);" 
+            batch = items_list[i : i + batch_size]
+            query = "INSERT INTO items (name, type, unit, store) VALUES (?, ?, ?, ?);"
             insert_data = []
             for item in batch:
-                insert_data.append((item['name'], item['type'], item['unit'], store))
+                insert_data.append((item["name"], item["type"], item["unit"], store))
             cur.executemany(query, insert_data)
             conn.commit()
 
@@ -404,16 +419,18 @@ class Server:
         cur = conn.cursor()
         batch_size = 30
         for i in range(0, len(items_list), batch_size):
-            batch = items_list[i:i+batch_size]
-            names = [item['name'] for item in batch]
+            batch = items_list[i : i + batch_size]
+            names = [item["name"] for item in batch]
 
-            placeholders = ', '.join(['?'] * len(batch))
+            placeholders = ", ".join(["?"] * len(batch))
             query = f"SELECT id, name FROM items WHERE name IN ({placeholders}) AND store = ?;"
             cur.execute(query, (*names, store))
             result = cur.fetchall()
-            
+
             items_id = {name: sid for sid, name in result}
-            batch_items_data = [(items_id[item['name']], item['price'], date) for item in batch]
+            batch_items_data = [
+                (items_id[item["name"]], item["price"], date) for item in batch
+            ]
 
             query = "INSERT INTO item_prices (item_id, price, date) VALUES (?, ?, ?);"
             cur.executemany(query, batch_items_data)
@@ -458,7 +475,7 @@ class Server:
         cur.execute(query, (date,))
         result = cur.fetchall()
         return result
-        
+
     def get_records_from_to_date(self, table, date_column, start_date, end_date):
         """
         Gets the items from a given table that have a date between two dates.
@@ -471,10 +488,13 @@ class Server:
         """
         conn = self.get_connection()
         cur = conn.cursor()
-        cur.execute(f"SELECT * FROM {table} WHERE {date_column} BETWEEN %s AND %s;", (start_date, end_date))
+        cur.execute(
+            f"SELECT * FROM {table} WHERE {date_column} BETWEEN %s AND %s;",
+            (start_date, end_date),
+        )
         result = cur.fetchall()
         return result
-    
+
     def get_distinct_items_table_column(self, table, column_name):
         """
         Gets the distinct values of a given column from a given table.
@@ -482,7 +502,7 @@ class Server:
         Args:
             table (str): The name of the table to get the distinct values from.
             column_name (str): The name of the column to get the distinct values from.
-        
+
         Returns:
             result (list): A list of values containing the distinct values from the given column.
         """
@@ -512,8 +532,6 @@ class Server:
     def get_triggers(self):
         conn = self.get_connection()
         cur = conn.cursor()
-        query = 'SELECT name, sql FROM sqlite_master WHERE type="trigger"' 
+        query = 'SELECT name, sql FROM sqlite_master WHERE type="trigger"'
         cur.execute(query)
         result = cur.fetchall()
-
-

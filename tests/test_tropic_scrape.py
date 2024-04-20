@@ -3,7 +3,6 @@ import json
 from item_scrapers.tropicScraper import TropicScraper
 
 
-
 def get_test_data(item_type):
     with open("test_data.json", "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -30,5 +29,3 @@ def test_scrape():
         for item in scraper.items:
             scraped_items[item["name"]] = [item["price"], item["unit"]]
         assert scraped_items == get_test_data(item_type)
-
-

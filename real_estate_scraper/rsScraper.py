@@ -18,6 +18,7 @@ class RealEstateScraper:
             main_page: Stores raw html the MAIN_URL
             properties: Dictionary that stores id: link of the real estate found on main page.
     """
+
     def __init__(self) -> None:
         """
         Initializes real estate scraper.
@@ -38,10 +39,13 @@ class RealEstateScraper:
         Returns:
             Returns raw html.
         """
-        headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36', 'Referer': 'https://bing.com/'}
+        headers = {
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+            "Referer": "https://bing.com/",
+        }
         response = requests.get(url, headers=headers)
         content = response.content
-        soup = BeautifulSoup(content, 'html.parser')
+        soup = BeautifulSoup(content, "html.parser")
         return soup
 
     def get_main_pages(self):
@@ -49,11 +53,11 @@ class RealEstateScraper:
         Gets the html of the 3 urls defined in __init__ and stores them in main_pages dict object attribute.
         """
         self.main_pages["Stan"] = self.get_soup(self.STANOVI_URL)
-        sleep(randint(5,10))
+        sleep(randint(5, 10))
         self.main_pages["Kuca"] = self.get_soup(self.KUCE_URL)
-        sleep(randint(5,10))
+        sleep(randint(5, 10))
         self.main_pages["Zemljiste"] = self.get_soup(self.ZEMLJISTA_URL)
-    
+
     def get_real_estates_from_main(self, get_main_pages=True):
         """
         New olx update so it uses regex insted of bs4 to get the ids.
@@ -69,11 +73,17 @@ class RealEstateScraper:
                 if script.contents and "window.__NUXT__" in script.contents[0][:50]:
                     target_script = script.contents[0]
                     break
-            match = re.search(r"results:\s*\[[^[\]]*(?:\[[^[\]]*\][^[\]]*)*\](?=,?\s*attributes)", target_script, re.DOTALL)
+            match = re.search(
+                r"results:\s*\[[^[\]]*(?:\[[^[\]]*\][^[\]]*)*\](?=,?\s*attributes)",
+                target_script,
+                re.DOTALL,
+            )
             results = match.group(0)
-            listings_ids = re.findall(r'(?<=,id:)\d+,', results)
+            listings_ids = re.findall(r"(?<=,id:)\d+,", results)
             for id in listings_ids:
-                self.real_estates[rs_type][id[:-1]] = f"https://olx.ba/artikal/{id[:-1]}/"
+                self.real_estates[rs_type][
+                    id[:-1]
+                ] = f"https://olx.ba/artikal/{id[:-1]}/"
 
     def get_found_ids(self) -> tuple:
         """
@@ -82,9 +92,9 @@ class RealEstateScraper:
         Returns:
             Total number of new real estate found.
         """
-        house_ids = list(self.real_estates['Kuca'])
-        flat_ids = list(self.real_estates['Stan'])
-        land_ids = list(self.real_estates['Zemljiste'])
+        house_ids = list(self.real_estates["Kuca"])
+        flat_ids = list(self.real_estates["Stan"])
+        land_ids = list(self.real_estates["Zemljiste"])
         return house_ids, flat_ids, land_ids
 
     def akcijska_cijena(self, rs_soup, data):
@@ -99,7 +109,7 @@ class RealEstateScraper:
         price_p = target_div.find("p")
         price = price_p.text.split("KM")[1]
         data["Cijena"] = price
-    
+
     def get_real_estate_details(self, rs_soup, rs_id, rs_type):
         """
         Gets all the specs it can found on a given rs page.
@@ -127,7 +137,13 @@ class RealEstateScraper:
                 if "Request failed with status code 404" in output:
                     print("Listing deleted")
                     return None
-                output = output.replace("None", "null").replace("False", "false").replace("True", "true").replace("'", '"').replace("\\", "")
+                output = (
+                    output.replace("None", "null")
+                    .replace("False", "false")
+                    .replace("True", "true")
+                    .replace("'", '"')
+                    .replace("\\", "")
+                )
                 pattern = r'"description":\s*".*?"\s*,\s*"updated_at"'
                 output = re.sub(pattern, '"description": null, "updated_at"', output)
                 try:
@@ -135,65 +151,83 @@ class RealEstateScraper:
                 except json.decoder.JSONDecodeError:
                     print("Json decode error probably some shit in the title")
                     return None
-                
+
                 # Get name, id, price
                 print("Getting name and price")
                 print(f"name is {output['data'][0]['title']}")
-                data["Ime"] = output['data'][0]['title']
-                data["Cijena"] = output['data'][0]['listing']['price']
+                data["Ime"] = output["data"][0]["title"]
+                data["Cijena"] = output["data"][0]["listing"]["price"]
 
                 # Table data
                 print("Getting table data")
-                for prop in output['data'][0]['listing']['attributes']:
-                    if prop['value'] == "true":
+                for prop in output["data"][0]["listing"]["attributes"]:
+                    if prop["value"] == "true":
                         prop_val = 1
-                    elif prop['value'] == "false":
+                    elif prop["value"] == "false":
                         prop_val = 0
                     else:
-                        prop_val = prop['value']
-                    data[prop['name']] = prop_val
+                        prop_val = prop["value"]
+                    data[prop["name"]] = prop_val
 
                 # Get the location, city and coordinates
                 print("Getting location")
-                data['Lokacija'] = output['data'][0]['listing']['cities'][0]['name']
-                if 'location' in output['data'][0]['listing']:
-                    data['lat'] = round(float(output['data'][0]['listing']['location']['lat']),4)
-                    data['lng'] = round(float(output['data'][0]['listing']['location']['lon']),4)
+                data["Lokacija"] = output["data"][0]["listing"]["cities"][0]["name"]
+                if "location" in output["data"][0]["listing"]:
+                    data["lat"] = round(
+                        float(output["data"][0]["listing"]["location"]["lat"]), 4
+                    )
+                    data["lng"] = round(
+                        float(output["data"][0]["listing"]["location"]["lon"]), 4
+                    )
 
                 # Get the type of seller
                 print("Getting seller info")
-                seller_type = output['data'][0]['listing']['user']['type']
+                seller_type = output["data"][0]["listing"]["user"]["type"]
                 shop = 1 if seller_type == "shop" else 0
-                data['kompanija'] = shop
+                data["kompanija"] = shop
 
                 # FFS olx what the fuck is with these random properties
                 # Deleting all these extra columns
                 print("Deleting extra columns if needed")
-                extra_cols = ["Vrsta opreme", "Ime i broj licence agenta", "Broj posredničkog ugovora", "Kuhinja", "Broj kreveta", "Vrsta", "Broj kupatila"]
+                extra_cols = [
+                    "Vrsta opreme",
+                    "Ime i broj licence agenta",
+                    "Broj posredničkog ugovora",
+                    "Kuhinja",
+                    "Broj kreveta",
+                    "Vrsta",
+                    "Broj kupatila",
+                ]
                 for col in extra_cols:
                     if col in data:
                         del data[col]
 
                 # Get the number of views and all the dates
                 print("Getting views and dates")
-                data["Broj pregleda"] = output['data'][0]['listing']['views']
-                data["Datum objave"] = datetime.fromtimestamp(int(output['data'][0]['listing']['created_at'])).strftime('%Y-%m-%d')
-                if 'date' in output['data'][0]['listing']:
-                    data["Obnovljen"] = datetime.fromtimestamp(int(output['data'][0]['listing']['date'])).strftime('%Y-%m-%d')
+                data["Broj pregleda"] = output["data"][0]["listing"]["views"]
+                data["Datum objave"] = datetime.fromtimestamp(
+                    int(output["data"][0]["listing"]["created_at"])
+                ).strftime("%Y-%m-%d")
+                if "date" in output["data"][0]["listing"]:
+                    data["Obnovljen"] = datetime.fromtimestamp(
+                        int(output["data"][0]["listing"]["date"])
+                    ).strftime("%Y-%m-%d")
 
                 # Get the state
                 print("Getting state")
-                print(output['data'][0]['listing']['state'])
+                print(output["data"][0]["listing"]["state"])
                 state_map = {"used": "koristeno", "new": "novo"}
-                if output['data'][0]['listing']['state'] != "none":
-                    data["Stanje"] = state_map[output['data'][0]['listing']['state']]
+                if output["data"][0]["listing"]["state"] != "none":
+                    data["Stanje"] = state_map[output["data"][0]["listing"]["state"]]
 
                 # Get listing type
                 listing_type_map = {"sell": "prodaja", "rent": "iznajmljivanje"}
-                data["Vrsta oglasa"] = listing_type_map[output['data'][0]['listing']['listing_type']]
+                data["Vrsta oglasa"] = listing_type_map[
+                    output["data"][0]["listing"]["listing_type"]
+                ]
                 print("Got all the data")
-                
-        print(data) 
+
+        print(data)
         return data
 
     def scrape_real_estate(self, rs_id, rs_link, rs_type, write_log_info):

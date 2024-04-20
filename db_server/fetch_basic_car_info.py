@@ -24,14 +24,14 @@ headers = [
     "datum_objave",
     "radnja",
     "cijena",
-    "link"
-    ]
+    "link",
+]
 
 server = Server()
 
 data = server.get_cars_basic_info()
 
-with open("car_data.csv", 'w') as car_data:
+with open("car_data.csv", "w") as car_data:
     writer = csv.writer(car_data, delimiter=";")
     writer.writerow(headers)
 

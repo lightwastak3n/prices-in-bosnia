@@ -23,4 +23,8 @@ except Exception as e:
     print(e)
     print("Tropic scraper failed")
 
-send_ntfy(msg=f"Found {total_new} new items. {total_inserted} items scraped.", title="Tropic scraper", tags=["shopping_cart"])
+send_ntfy(
+    msg=f"Found {total_new} new items. {total_inserted} items scraped.",
+    title="Tropic scraper",
+    tags=["shopping_cart"],
+)

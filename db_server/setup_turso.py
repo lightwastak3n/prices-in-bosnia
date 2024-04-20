@@ -6,6 +6,7 @@ from turso_server import Server
 db_org = os.getenv("turso_db_org")
 turso_token = os.getenv("turso_db_token")
 
+
 # Delete tables
 def delete_tables():
     server.cur.execute("DROP TABLE cars;")
@@ -41,4 +42,3 @@ server = Server(db_org, turso_token)
 #     for row in reader:
 #         rs_links.append(tuple(row))
 # server.transfer_scraped_links(rs_links, "rs")
-

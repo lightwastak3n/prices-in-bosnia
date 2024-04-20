@@ -1,6 +1,3 @@
-import sys
-import os
-import json
 import pytest
 
 # parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -9,7 +6,7 @@ import pytest
 from db_server import sql_server
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def get_server():
     server = sql_server.Server()
     server.DATABASE = "test_database"
@@ -52,19 +49,29 @@ def test_tables_in_db(get_server):
         tables = []
         for item in result:
             tables.append(item[0])
-    test_tables = ["links_cars", "cars", "rs_links", "land", "flats", "houses", "items", "item_prices"]
+    test_tables = [
+        "links_cars",
+        "cars",
+        "rs_links",
+        "land",
+        "flats",
+        "houses",
+        "items",
+        "item_prices",
+    ]
     get_server.connection.close()
     assert all([table in tables for table in test_tables]) == True
 
+
 # Used before but not needed anymore. Tables hold test data.
-# def test_delete_tables(get_server):
-#     delete_tables(get_server)
-#     get_server.create_connection()
-#     with get_server.connection.cursor() as cursor:
-#         cursor.execute("SHOW TABLES;")
-#         result = cursor.fetchall()
-#         tables = []
-#         for item in result:
-#             tables.append(item[0])
-#     get_server.connection.close()
-#     assert tables == []
+def test_delete_tables(get_server):
+    delete_tables(get_server)
+    get_server.create_connection()
+    with get_server.connection.cursor() as cursor:
+        cursor.execute("SHOW TABLES;")
+        result = cursor.fetchall()
+        tables = []
+        for item in result:
+            tables.append(item[0])
+    get_server.connection.close()
+    assert tables == []

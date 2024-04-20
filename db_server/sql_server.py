@@ -5,6 +5,7 @@ import datetime
 
 from mysql.connector import Error
 
+
 class Server:
     """
     Represents connection with the MySQL server.
@@ -32,13 +33,13 @@ class Server:
         Loads MySQL config into object attributes.
         """
         CONFIG_FILE = os.path.join(os.path.dirname(__file__), configfile)
-        with open(CONFIG_FILE, 'r') as cnf:
+        with open(CONFIG_FILE, "r") as cnf:
             config = json.load(cnf)
-        self.HOST = config['host']
-        self.PORT = config['port']
-        self.DATABASE = config['database']
-        self.USER = config['user']
-        self.PASSWORD = config['password']
+        self.HOST = config["host"]
+        self.PORT = config["port"]
+        self.DATABASE = config["database"]
+        self.USER = config["user"]
+        self.PASSWORD = config["password"]
 
     def create_connection(self):
         """
@@ -56,7 +57,8 @@ class Server:
                 port=self.PORT,
                 database=self.DATABASE,
                 user=self.USER,
-                password=self.PASSWORD)
+                password=self.PASSWORD,
+            )
             if connection.is_connected():
                 return connection
         except Error as e:
@@ -80,17 +82,20 @@ class Server:
         Creates table that stores id, links, and status (scraped or not) of a car found on main page of OLX.
         """
         with self.connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE links_cars
+            cursor.execute(
+                """CREATE TABLE links_cars
                 (id INT PRIMARY KEY NOT NULL UNIQUE,
                 link TEXT NOT NULL,
-                scraped INT);''')
+                scraped INT);"""
+            )
 
     def create_table_cars(self):
         """
         Creates table that stores cars and their properties.
         """
         with self.connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE cars
+            cursor.execute(
+                """CREATE TABLE cars
                             (id INT NOT NULL UNIQUE,
                             ime TEXT NOT NULL,
                             cijena INT NOT NULL,
@@ -173,25 +178,29 @@ class Server:
                             broj_pregleda INT,
                             radnja INT,
                             datum DATE,
-                            FOREIGN KEY(id) REFERENCES links_cars(id));''')
+                            FOREIGN KEY(id) REFERENCES links_cars(id));"""
+            )
 
     def create_table_rs_links(self):
         """
         Creates table that stores id, links, and status (scraped or not) of a real estate found on main pages of their respective listings.
         """
         with self.connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE rs_links
+            cursor.execute(
+                """CREATE TABLE rs_links
                 (id INT PRIMARY KEY NOT NULL UNIQUE,
                 link TEXT NOT NULL,
                 type TEXT NOT NULL,
-                scraped INT);''')
+                scraped INT);"""
+            )
 
     def create_table_houses(self):
         """
         Creates a table that stores houses and their properties.
         """
         with self.connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE houses
+            cursor.execute(
+                """CREATE TABLE houses
                             (id	INT NOT NULL UNIQUE,
                             ime TEXT,
                             datum DATE,
@@ -234,14 +243,16 @@ class Server:
                             datum_objave DATE,
                             obnovljen DATE,
                             broj_pregleda INT,
-                            FOREIGN KEY(id) REFERENCES rs_links(id));''')
+                            FOREIGN KEY(id) REFERENCES rs_links(id));"""
+            )
 
     def create_table_flats(self):
         """
         Creates a table that stores flats and their properties.
         """
         with self.connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE flats
+            cursor.execute(
+                """CREATE TABLE flats
                             (id	INT NOT NULL UNIQUE,
                             ime TEXT,
                             datum DATE,
@@ -292,14 +303,16 @@ class Server:
                             obnovljen DATE,
                             broj_pregleda INT,
                             tv INT,
-                            FOREIGN KEY(id) REFERENCES rs_links(id));''')
+                            FOREIGN KEY(id) REFERENCES rs_links(id));"""
+            )
 
     def create_table_land(self):
         """
         Creates a table that stores lands and their properties.
         """
         with self.connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE land
+            cursor.execute(
+                """CREATE TABLE land
                             (id	INT NOT NULL UNIQUE,
                             ime TEXT,
                             datum DATE,
@@ -320,31 +333,36 @@ class Server:
                             obnovljen DATE,
                             datum_objave DATE,
                             broj_pregleda INT,
-                            FOREIGN KEY(id) REFERENCES rs_links(id));''')
+                            FOREIGN KEY(id) REFERENCES rs_links(id));"""
+            )
 
     def create_table_items(self):
         """
         Creates a table that stores items from stores.
         """
         with self.connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE items 
+            cursor.execute(
+                """CREATE TABLE items 
                 (id INTEGER AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
                 type VARCHAR(255) NOT NULL,
                 unit VARCHAR(255) NOT NULL,
-                store VARCHAR(255) NOT NULL);''')
-    
+                store VARCHAR(255) NOT NULL);"""
+            )
+
     def create_table_item_prices(self):
         """
         Creates a table that stores historical prices of items.
         """
         with self.connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE item_prices 
+            cursor.execute(
+                """CREATE TABLE item_prices 
                 (id INTEGER AUTO_INCREMENT PRIMARY KEY,
                 item_id INTEGER NOT NULL,
                 price REAL NOT NULL,
                 date DATE NOT NULL,
-                FOREIGN KEY (item_id) REFERENCES items (id));''')
+                FOREIGN KEY (item_id) REFERENCES items (id));"""
+            )
 
     def database_setup(self):
         """
@@ -383,7 +401,7 @@ class Server:
         if result:
             return True
         return False
-    
+
     def items_not_in_db(self, table, ids_list):
         """
         Checks which ids from a list are in a table.
@@ -418,7 +436,7 @@ class Server:
             result = cursor.fetchall()
         self.close_connection()
         return result
-    
+
     def get_non_scraped_rs(self):
         """
         Gets the list of rs that havent been scraped yet.
@@ -460,8 +478,9 @@ class Server:
         """
         self.create_connection()
         with self.connection.cursor() as cursor:
-            cursor.execute(f"INSERT INTO links_cars VALUES(%s, %s, %s);",
-                           (car_id, link, scraped))
+            cursor.execute(
+                f"INSERT INTO links_cars VALUES(%s, %s, %s);", (car_id, link, scraped)
+            )
             self.connection.commit()
         self.close_connection()
         write_log_info(f"{car_id} - {link} added to the database.")
@@ -477,8 +496,10 @@ class Server:
         self.create_connection()
         with self.connection.cursor() as cursor:
             for car_id, link, scraped in cars:
-                cursor.execute(f"INSERT INTO links_cars VALUES(%s, %s, %s);",
-                            (car_id, link, scraped))
+                cursor.execute(
+                    f"INSERT INTO links_cars VALUES(%s, %s, %s);",
+                    (car_id, link, scraped),
+                )
                 write_log_info(f"{car_id} - {link} added to the database.")
                 print(f"{car_id} - {link} added to the database.")
         self.connection.commit()
@@ -495,8 +516,10 @@ class Server:
         """
         self.create_connection()
         with self.connection.cursor() as cursor:
-            cursor.execute(f"INSERT INTO rs_links VALUES(%s, %s, %s, %s);",
-                           (rs_id, rs_link, rs_type, scraped))
+            cursor.execute(
+                f"INSERT INTO rs_links VALUES(%s, %s, %s, %s);",
+                (rs_id, rs_link, rs_type, scraped),
+            )
             self.connection.commit()
         self.close_connection()
         write_log_info(f"{rs_id} - {rs_link} added to the database.")
@@ -512,13 +535,14 @@ class Server:
         self.create_connection()
         with self.connection.cursor() as cursor:
             for rs_id, rs_link, rs_type, scraped in rs:
-                cursor.execute(f"INSERT INTO rs_links VALUES(%s, %s, %s, %s);",
-                            (rs_id, rs_link, rs_type, scraped))
+                cursor.execute(
+                    f"INSERT INTO rs_links VALUES(%s, %s, %s, %s);",
+                    (rs_id, rs_link, rs_type, scraped),
+                )
                 write_log_info(f"{rs_id} - {rs_link} added to the database.")
                 print(f"{rs_id} - {rs_link} added to the database.")
         self.connection.commit()
         self.close_connection()
-
 
     def get_missing_seller_cars(self):
         """
@@ -529,11 +553,13 @@ class Server:
         """
         self.create_connection()
         with self.connection.cursor() as cursor:
-            cursor.execute("""SELECT links_cars.id, links_cars.link
+            cursor.execute(
+                """SELECT links_cars.id, links_cars.link
                                     FROM cars
                                     LEFT JOIN links_cars
                                     ON links_cars.id = cars.id
-                                    WHERE cars.radnja is NULL;""")
+                                    WHERE cars.radnja is NULL;"""
+            )
             result = cursor.fetchall()
         self.close_connection()
         return result
@@ -544,8 +570,7 @@ class Server:
         """
         self.create_connection()
         with self.connection.cursor() as cursor:
-            cursor.execute(
-                f"UPDATE {table} SET scraped=1 WHERE id={item_id};")
+            cursor.execute(f"UPDATE {table} SET scraped=1 WHERE id={item_id};")
             self.connection.commit()
         self.close_connection()
 
@@ -559,8 +584,7 @@ class Server:
         """
         self.create_connection()
         with self.connection.cursor() as cursor:
-            cursor.execute(
-                f"UPDATE cars SET radnja={value} WHERE id={car_id};")
+            cursor.execute(f"UPDATE cars SET radnja={value} WHERE id={car_id};")
             self.connection.commit()
         self.close_connection()
 
@@ -657,7 +681,9 @@ class Server:
             cursor.execute("SELECT COUNT(id) FROM cars;")
             result = cursor.fetchall()
             total_cars = result[0][0]
-            cursor.execute("SELECT (SELECT COUNT(id) FROM houses) + (SELECT COUNT(id) FROM flats) + (SELECT COUNT(id) FROM land);")
+            cursor.execute(
+                "SELECT (SELECT COUNT(id) FROM houses) + (SELECT COUNT(id) FROM flats) + (SELECT COUNT(id) FROM land);"
+            )
             result = cursor.fetchall()
             total_rs = result[0][0]
         self.close_connection()
@@ -678,7 +704,7 @@ class Server:
             FROM items
             JOIN item_prices ON items.id = item_prices.item_id
             WHERE items.store = '{store}';
-        """        
+        """
         self.create_connection()
         with self.connection.cursor() as cursor:
             cursor.execute(query)
@@ -707,15 +733,15 @@ class Server:
             items_to_add: A list of missing items that are not in the items table for the specified store.
         """
         self.create_connection()
-        items_names = [item['name'] for item in items_list]
+        items_names = [item["name"] for item in items_list]
         with self.connection.cursor() as cursor:
             cursor.execute("SELECT name FROM items WHERE store = %s;", (store,))
             existing_items = [x[0] for x in cursor.fetchall()]
         self.close_connection()
         missing_items = set(items_names) - set(existing_items)
-        items_to_add = [item for item in items_list if item['name'] in missing_items]
+        items_to_add = [item for item in items_list if item["name"] in missing_items]
         return items_to_add
-    
+
     def insert_items(self, items_list, store):
         """
         Inserts item name, type, unit, store into items table.
@@ -727,7 +753,10 @@ class Server:
         self.create_connection()
         with self.connection.cursor() as cursor:
             for item in items_list:
-                cursor.execute("INSERT INTO items (name, type, unit, store) VALUES (%s, %s, %s, %s);", (item['name'], item['type'], item['unit'], store))
+                cursor.execute(
+                    "INSERT INTO items (name, type, unit, store) VALUES (%s, %s, %s, %s);",
+                    (item["name"], item["type"], item["unit"], store),
+                )
         self.connection.commit()
         self.close_connection()
 
@@ -744,15 +773,17 @@ class Server:
             # We are going to insert 100 items at a time.
             batch_size = 100
             for i in range(0, len(items_list), batch_size):
-                batch = items_list[i:i+batch_size]
-                names = [item['name'] for item in batch]
+                batch = items_list[i : i + batch_size]
+                names = [item["name"] for item in batch]
 
-                placeholders = ', '.join(['%s'] * len(batch))
+                placeholders = ", ".join(["%s"] * len(batch))
                 query = f"SELECT id, name FROM items WHERE name IN ({placeholders}) AND store = %s;"
                 cursor.execute(query, (*names, store))
-                
+
                 items_id = {name: id for id, name in cursor.fetchall()}
-                batch_items_data = [(items_id[item['name']], item['price'], date) for item in batch]
+                batch_items_data = [
+                    (items_id[item["name"]], item["price"], date) for item in batch
+                ]
                 query = "INSERT INTO item_prices (item_id, price, date) VALUES (%s, %s, %s);"
                 cursor.executemany(query, batch_items_data)
 
@@ -772,7 +803,7 @@ class Server:
             result (list): A list of dictionaries containing the records from the given table.
         """
         self.create_connection()
-        date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+        date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
         with self.connection.cursor() as cursor:
             cursor.execute(f"SELECT * FROM {table} WHERE {date_column}=%s;", (date,))
             result = cursor.fetchall()
@@ -801,7 +832,7 @@ class Server:
             result = cursor.fetchall()
         self.close_connection()
         return result
-        
+
     def get_records_from_to_date(self, table, date_column, start_date, end_date):
         """
         Gets the items from a given table that have a date between two dates.
@@ -814,11 +845,14 @@ class Server:
         """
         self.create_connection()
         with self.connection.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM {table} WHERE {date_column} BETWEEN %s AND %s;", (start_date, end_date))
+            cursor.execute(
+                f"SELECT * FROM {table} WHERE {date_column} BETWEEN %s AND %s;",
+                (start_date, end_date),
+            )
             result = cursor.fetchall()
         self.close_connection()
         return result
-    
+
     def get_distinct_items_table_column(self, table, column_name):
         """
         Gets the distinct values of a given column from a given table.
@@ -826,7 +860,7 @@ class Server:
         Args:
             table (str): The name of the table to get the distinct values from.
             column_name (str): The name of the column to get the distinct values from.
-        
+
         Returns:
             result (list): A list of values containing the distinct values from the given column.
         """

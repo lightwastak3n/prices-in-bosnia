@@ -63,7 +63,7 @@ columns = {
     "Udaljenost od rijeke (m)": "udaljenost_rijeka",
     "Građevinska dozvola": "gradjevinska_dozvola",
     "Urbanistička dozvola": "urbanisticka_dozvola",
-    "TV": "TV"
+    "TV": "TV",
 }
 
 radio_columns = [
@@ -97,7 +97,7 @@ radio_columns = [
     "rezije",
     "kanalizacija",
     "namjesten",
-    "namjestena"
+    "namjestena",
 ]
 
 
@@ -162,18 +162,18 @@ class RealEstate:
         # self.data["cijena"] = self.data["cijena"].rstrip(" KM").replace(".", "")
         # if "," in self.data["cijena"]:
         #     self.data["cijena"] = self.data["cijena"].split(",")[0]
-        if self.type == 'Zemljiste' and 'stanje' in self.data:
-            del self.data['stanje']
-        if 'kvadrata' in self.data:
-            self.data['kvadrata'] = self.fix_int(self.data['kvadrata'])
+        if self.type == "Zemljiste" and "stanje" in self.data:
+            del self.data["stanje"]
+        if "kvadrata" in self.data:
+            self.data["kvadrata"] = self.fix_int(self.data["kvadrata"])
 
     def fix_int(self, num):
         num = str(num)
-        num = num.replace('.', "")
-        num = num.replace('m2', "")
-        num = num.replace('²', "")
-        if ',' in num:
-            num = num.split(',')[0]
+        num = num.replace(".", "")
+        num = num.replace("m2", "")
+        num = num.replace("²", "")
+        if "," in num:
+            num = num.split(",")[0]
         num = "".join(filter(str.isdigit, num))
         if num == "":
             num = 0
@@ -186,34 +186,37 @@ class RealEstate:
         """
         if "udaljenost_rijeka" in self.data:
             self.data["udaljenost_rijeka"] = self.fix_int(
-                self.data["udaljenost_rijeka"])
+                self.data["udaljenost_rijeka"]
+            )
         if "kvadratura_balkona" in self.data:
             self.data["kvadratura_balkona"] = self.fix_int(
-                self.data["kvadratura_balkona"])
+                self.data["kvadratura_balkona"]
+            )
         if "okucnica_kvadratura" in self.data:
             self.data["okucnica_kvadratura"] = self.fix_int(
-                self.data["okucnica_kvadratura"])
+                self.data["okucnica_kvadratura"]
+            )
 
     def fix_number_of_rooms(self):
         """
         Room number should be int for a house and we can give it values for a apartment
         """
-        if 'broj_soba' in self.data and self.data['broj_soba'] == '8+':
-            self.data['broj_soba'] = 8
-        if self.type == 'Stan' and 'broj_soba' in self.data:
+        if "broj_soba" in self.data and self.data["broj_soba"] == "8+":
+            self.data["broj_soba"] = 8
+        if self.type == "Stan" and "broj_soba" in self.data:
             name_room = {
-                'Garsonjera': 0,
-                'Jednosoban (1)': 1,
-                'Jednoiposoban (1.5)': 1.5,
-                'Dvosoban (2)': 2,
-                'Trosoban (3)': 3,
-                'Četverosoban (4)': 4,
-                'Petosoban i više': 5,
-                '1': 1,
-                '2': 2,
-                '3': 3,
-                '4': 4,
-                '5': 5
+                "Garsonjera": 0,
+                "Jednosoban (1)": 1,
+                "Jednoiposoban (1.5)": 1.5,
+                "Dvosoban (2)": 2,
+                "Trosoban (3)": 3,
+                "Četverosoban (4)": 4,
+                "Petosoban i više": 5,
+                "1": 1,
+                "2": 2,
+                "3": 3,
+                "4": 4,
+                "5": 5,
             }
             self.data["broj_soba"] = name_room[self.data["broj_soba"]]
 
@@ -224,8 +227,14 @@ class RealEstate:
 
     def fix_namjesten(self):
         if self.type == "Stan":
-            namjesten_mapping = {"Namješten": 2, "Nenamješten": 0,
-                                 "Polunamješten": 1, "Namje&scaron;ten": 2, 1: 2, 0: 0}
+            namjesten_mapping = {
+                "Namješten": 2,
+                "Nenamješten": 0,
+                "Polunamješten": 1,
+                "Namje&scaron;ten": 2,
+                1: 2,
+                0: 0,
+            }
             if "namjesten" in self.data:
                 self.data["namjesten"] = namjesten_mapping[self.data["namjesten"]]
 
@@ -243,19 +252,14 @@ class RealEstate:
 
     def fix_serbian_letters(self):
         """Remove lettes š, đ, č, ć, ž from the values in data"""
-        latin_chars = {
-            "š": "s",
-            "đ": "dj",
-            "č": "c",
-            "ć": "c",
-            "ž": "z"
-        }
+        latin_chars = {"š": "s", "đ": "dj", "č": "c", "ć": "c", "ž": "z"}
         # Add capital letters also
-        latin_chars.update({key.upper(): value.upper()
-                           for key, value in latin_chars.items()})
+        latin_chars.update(
+            {key.upper(): value.upper() for key, value in latin_chars.items()}
+        )
         latin_chars["Đ"] = "Dj"
         for key in self.data:
             if isinstance(self.data[key], str):
-                self.data[key] = ''.join(latin_chars.get(
-                    char, char) for char in self.data[key])
-
+                self.data[key] = "".join(
+                    latin_chars.get(char, char) for char in self.data[key]
+                )

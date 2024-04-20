@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from db_server.sql_server import Server
 from utils.log_maker import write_log_info
 
+
 class CarScraper:
     """
     Car scraper object that scrapes the main page and checks for new cars and also scrapes individual cars.
@@ -15,6 +16,7 @@ class CarScraper:
             main_page: Stores raw html the MAIN_URL
             cars: Dictionary that stores id: link of the cars found on main page.
     """
+
     def __init__(self) -> None:
         """
         Initializes car scraper.
@@ -33,10 +35,12 @@ class CarScraper:
         Returns:
             Returns raw html.
         """
-        headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36'}
+        headers = {
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36"
+        }
         response = requests.get(url, headers=headers)
         content = response.content
-        soup = BeautifulSoup(content, 'html.parser')
+        soup = BeautifulSoup(content, "html.parser")
         return soup
 
     def get_main_page(self):
@@ -44,16 +48,16 @@ class CarScraper:
         Gets the html of the MAIN_PAGE and stores it in main_page object attribute
         """
         self.main_page = self.get_soup(self.MAIN_URL)
-    
-    def get_cars_from_main(self):                           
+
+    def get_cars_from_main(self):
         """
         Gets all the links found under div class: "naslov".
         Each link corressponds to a car.
         The links are stored in self.cars attribute.
         """
         self.get_main_page()
-        listing_divs = self.main_page.findAll("div", {'class': 'naslov'})
-        for listing in listing_divs:                                        
+        listing_divs = self.main_page.findAll("div", {"class": "naslov"})
+        for listing in listing_divs:
             link_tag = listing.find("a")
             try:
                 link = link_tag.get("href")
@@ -63,7 +67,7 @@ class CarScraper:
                 print("Link not found. Empty listing bar.")
             except Exception as e:
                 print(f"Unexpected error - {e}")
-        
+
     def filter_new_cars(self) -> int:
         """
         Checks id of each car found against the ids already present in the database.
@@ -80,8 +84,8 @@ class CarScraper:
                 total += 1
         server.close_connection()
         return total
-    
-    # Fix for akcijska cijena 
+
+    # Fix for akcijska cijena
     def akcijska_cijena(self, car_soup, data):
         """
         Akcijska cijena is in a different class so we need special fix for that.
@@ -110,7 +114,9 @@ class CarScraper:
         data = {"id": car_id, "Ime": name, "datum": f"{date.today()}"}
 
         # Checking if its a shop
-        data['radnja'] = 1 if car_soup.findAll("div", {"class": "povjerenje_mmradnja"}) else 0
+        data["radnja"] = (
+            1 if car_soup.findAll("div", {"class": "povjerenje_mmradnja"}) else 0
+        )
 
         basic_info = car_soup.findAll("p", {"class": "n"})
         for i in basic_info:
@@ -127,9 +133,9 @@ class CarScraper:
         elif "Hitna prodaja" in data:
             data["Cijena"] = data["Hitna prodaja"]
             del data["Hitna prodaja"]
-        elif "Akcijska cijena - " in str(car_soup) and data.get('Cijena') == None:
+        elif "Akcijska cijena - " in str(car_soup) and data.get("Cijena") == None:
             self.akcijska_cijena(car_soup, data)
-            
+
         if "Cijena" in data and data["Cijena"] == "Po dogovoru":
             data["Cijena"] = "0"
 

@@ -1,11 +1,13 @@
 from carScraper_v2 import CarScraper
 from car import Car
 
+
 def test(x):
     pass
 
+
 scraper = CarScraper()
-data = scraper.scrape_car('53068731', 'https://olx.ba/artikal/53669404/', test)
+data = scraper.scrape_car("53068731", "https://olx.ba/artikal/53669404/", test)
 print("Got data")
 
 if data:

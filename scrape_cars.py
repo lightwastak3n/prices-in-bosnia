@@ -10,9 +10,10 @@ from utils.log_maker import write_log_error, write_log_info
 
 
 def send_ntfy(msg):
-    headers = {"Title":"Scraper crashed", "Tags": "warning, car"}
+    headers = {"Title": "Scraper crashed", "Tags": "warning, car"}
     url = "https://ntfy.sh/VSNyDS35BgEi"
     requests.post(url=url, data=msg, headers=headers)
+
 
 car_scraper = CarScraper()
 server = Server()
@@ -21,7 +22,7 @@ while True:
     try:
         car_scraper.get_cars_from_main()
         found_ids = car_scraper.get_found_ids()
-        new_ids = server.items_not_in_db("links_cars", found_ids) 
+        new_ids = server.items_not_in_db("links_cars", found_ids)
         new_found = len(new_ids)
         # This is where the warning happens
         print("Found", new_found, "cars")
@@ -29,20 +30,20 @@ while True:
         # Make [id, link, 0] list to add to the server
         add_ids = [(car_id, car_scraper.cars[car_id], 0) for car_id in new_ids]
         server.add_car_links(add_ids, write_log_info)
-        
+
         not_scraped = server.get_non_scraped_cars()
         total_not_scraped = len(not_scraped)
 
         if new_found > 25:
-            allocated_time = randint(200,250)
+            allocated_time = randint(200, 250)
         elif new_found > 15:
-            allocated_time = randint(400,500)
+            allocated_time = randint(400, 500)
         elif new_found > 5:
             allocated_time = randint(600, 800)
         else:
             allocated_time = randint(1000, 1200)
 
-        pause_between_cars = randint(10,20)
+        pause_between_cars = randint(10, 20)
         possible_fit = min(allocated_time // pause_between_cars, len(not_scraped))
         time_left = max(allocated_time - total_not_scraped * pause_between_cars, 0)
 

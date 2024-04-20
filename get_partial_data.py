@@ -4,6 +4,7 @@ import calendar
 import libsql_experimental as libsql
 from time import sleep
 from datetime import datetime
+
 # from db_server.sql_server import Server
 from time import sleep
 
@@ -142,7 +143,7 @@ flats_columns = [
     "datum_objave",
     "obnovljen",
     "broj_pregleda",
-    "tv"
+    "tv",
 ]
 
 houses_columns = [
@@ -210,24 +211,17 @@ land_columns = [
     "kompanija",
     "obnovljen",
     "datum_objave",
-"broj_pregleda",
+    "broj_pregleda",
 ]
 
-items_columns = [
-    "name",
-    "type",
-    "unit",
-    "store",
-    "price",
-    "date"
-]
+items_columns = ["name", "type", "unit", "store", "price", "date"]
 
 
 olx_columns = {
     "cars": cars_columns,
     "flats": flats_columns,
     "houses": houses_columns,
-    "land": land_columns
+    "land": land_columns,
 }
 
 
@@ -255,7 +249,7 @@ def generate_dates(month, year):
     for day in range(1, 32):
         try:
             date = datetime(year, month, day)
-            formatted_date = date.strftime('%Y-%m-%d')
+            formatted_date = date.strftime("%Y-%m-%d")
             dates.append(formatted_date)
         except ValueError:
             break
@@ -302,7 +296,7 @@ def download_everything(date):
         sleep(2)
 
 
-# dates = generate_dates(4, 2024) 
+# dates = generate_dates(4, 2024)
 #
 # for date in dates:
 #     download_everything(date)

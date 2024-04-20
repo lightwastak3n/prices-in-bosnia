@@ -20,7 +20,7 @@ server = Server(test_org, test_token)
 
 def create_tables():
     conn = server.get_connection()
-    with open('create_tables.sql', 'r') as file:
+    with open("create_tables.sql", "r") as file:
         script = file.read()
     conn.executescript(script)
     conn.commit()
@@ -52,7 +52,17 @@ def test_tables_in_db():
     for item in result:
         tables.append(item[1])
     print(tables)
-    test_tables = ["links_cars", "cars", "rs_links", "land", "flats", "houses", "items", "item_prices", "scraping_stats"]
+    test_tables = [
+        "links_cars",
+        "cars",
+        "rs_links",
+        "land",
+        "flats",
+        "houses",
+        "items",
+        "item_prices",
+        "scraping_stats",
+    ]
     assert all([table in tables for table in test_tables]) == True
 
 
@@ -68,7 +78,7 @@ def test_car_link_in_db():
     insert_car_links()
     not_there = server.item_in_db("links_cars", "1234567")
     there = server.item_in_db("links_cars", "11111")
-    assert [not_there, there] == [False, True] 
+    assert [not_there, there] == [False, True]
 
 
 def test_cars_in_db():
@@ -89,7 +99,7 @@ def insert_single_car():
     car_data = data["car1"]
     for prop in car_data:
         val = car_data[prop] if car_data[prop] else ""
-        car_data[prop] = val 
+        car_data[prop] = val
     server.insert_car_data(car_data)
 
 
@@ -102,6 +112,7 @@ def test_get_car_data():
     for item in check_items:
         answer.append(item in car_data)
     assert all(answer) == True
+
 
 def insert_rs_data():
     with open("test_data.json", "r", encoding="utf-8") as f:
@@ -119,17 +130,17 @@ def insert_rs_links():
     server.add_rs_links(rs_data)
     server.add_rs_link(112233, "yahoo.com", "Kuca", "0")
     insert_rs_data()
-    
+
 
 def test_get_non_scraped_rs():
     insert_rs_links()
     not_scraped = server.get_non_scraped_rs()
     answer = [
-            (561091, 'https://www.olx.ba/artikal/561091/', 'Kuca'),
-            (667413, 'https://olx.ba/artikal/667413/', 'Stan'),
-            (668263, 'https://olx.ba/artikal/668263/', 'Zemljiste'),
-            (112233, 'yahoo.com', 'Kuca')
-            ]
+        (561091, "https://www.olx.ba/artikal/561091/", "Kuca"),
+        (667413, "https://olx.ba/artikal/667413/", "Stan"),
+        (668263, "https://olx.ba/artikal/668263/", "Zemljiste"),
+        (112233, "yahoo.com", "Kuca"),
+    ]
     answer = sorted(answer, key=lambda x: x[0])
     not_scraped = sorted(not_scraped, key=lambda x: x[0])
     assert answer == not_scraped
@@ -140,9 +151,9 @@ def test_mark_as_scraped():
     server.mark_as_scraped("rs_links", 667413)
     not_scraped = server.get_non_scraped_rs()
     answer = [
-            (561091, 'https://www.olx.ba/artikal/561091/', 'Kuca'),
-            (668263, 'https://olx.ba/artikal/668263/', 'Zemljiste'),
-            ]
+        (561091, "https://www.olx.ba/artikal/561091/", "Kuca"),
+        (668263, "https://olx.ba/artikal/668263/", "Zemljiste"),
+    ]
     answer = sorted(answer, key=lambda x: x[0])
     not_scraped = sorted(not_scraped, key=lambda x: x[0])
     assert answer == not_scraped
@@ -177,11 +188,16 @@ def test_get_house_data():
 
 def get_fruits_dict():
     with open("test_data.json", "r", encoding="utf-8") as f:
-        data = json.load(f) 
+        data = json.load(f)
     fruits = data["tropic_fruits_and_vegetables"]
     items_data = []
-    for item_name in fruits: 
-        item = {"name": item_name, "price": fruits[item_name][0], "unit": fruits[item_name][1], "type": "fruits and vegetables"}
+    for item_name in fruits:
+        item = {
+            "name": item_name,
+            "price": fruits[item_name][0],
+            "unit": fruits[item_name][1],
+            "type": "fruits and vegetables",
+        }
         items_data.append(item)
     return items_data
 
@@ -214,7 +230,7 @@ def test_delete_tables():
     delete_tables()
     conn = server.get_connection()
     cur = conn.cursor()
-    cur.execute( "SELECT * FROM sqlite_master WHERE type='table';")
+    cur.execute("SELECT * FROM sqlite_master WHERE type='table';")
     result = cur.fetchall()
     tables = []
     for item in result:

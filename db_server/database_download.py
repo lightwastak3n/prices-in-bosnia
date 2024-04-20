@@ -27,7 +27,9 @@ def generate_date_range(start_date, end_date) -> list:
     return date_list
 
 
-def download_date_range_records(server, table, date_column, start_date, end_date) -> list:
+def download_date_range_records(
+    server, table, date_column, start_date, end_date
+) -> list:
     """
     Downloads data for a given date range.
 
@@ -67,6 +69,7 @@ def download_date_range_items(server, start_date, end_date) -> list:
         all_records.extend(date_records)
         sleep(1)
     return all_records
+
 
 def save_records_csv(records, file_name):
     """

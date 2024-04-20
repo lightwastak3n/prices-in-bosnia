@@ -13,9 +13,10 @@ from utils.log_maker import write_log_error
 
 
 def send_ntfy(msg):
-    headers = {"Title":"Scraper crashed", "Tags": "warning, car"}
+    headers = {"Title": "Scraper crashed", "Tags": "warning, car"}
     url = "https://ntfy.sh/VSNyDS35BgEi"
     requests.post(url=url, data=msg, headers=headers)
+
 
 server = Server()
 car_scraper = CarScraper()
@@ -32,15 +33,15 @@ def scrape_cars():
             total_not_scraped = len(not_scraped)
 
             if new_found > 25:
-                allocated_time = randint(200,250)
+                allocated_time = randint(200, 250)
             elif new_found > 15:
-                allocated_time = randint(400,500)
+                allocated_time = randint(400, 500)
             elif new_found > 5:
                 allocated_time = randint(600, 800)
             else:
                 allocated_time = randint(1000, 1200)
 
-            pause_between_cars = randint(20,40)
+            pause_between_cars = randint(20, 40)
             possible_fit = min(allocated_time // pause_between_cars, len(not_scraped))
             time_left = max(allocated_time - total_not_scraped * pause_between_cars, 0)
 
@@ -76,20 +77,22 @@ def scrape_real_estates():
             total_not_scraped = len(not_scraped)
 
             if new_found > 40:
-                allocated_time = randint(200,300)
+                allocated_time = randint(200, 300)
             elif new_found > 25:
-                allocated_time = randint(400,500)
+                allocated_time = randint(400, 500)
             elif new_found > 10:
                 allocated_time = randint(600, 800)
             else:
                 allocated_time = randint(1000, 1200)
 
-            pause_between_items = randint(20,40)
+            pause_between_items = randint(20, 40)
             possible_fit = min(allocated_time // pause_between_items, len(not_scraped))
             time_left = max(allocated_time - total_not_scraped * pause_between_items, 0)
 
             print(f"Found {new_found} new items. Left to scrape {len(not_scraped)}.")
-            print(f"Will scrape {possible_fit} real estate for {allocated_time} seconds.")
+            print(
+                f"Will scrape {possible_fit} real estate for {allocated_time} seconds."
+            )
             for item in not_scraped[:possible_fit]:
                 rs_id = item[0]
                 rs_link = item[1]
@@ -121,4 +124,3 @@ t2 = Thread(target=scrape_real_estates)
 
 t1.start()
 t2.start()
-
