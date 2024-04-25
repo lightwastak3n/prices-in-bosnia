@@ -49,7 +49,7 @@ def test_car_scrape():
         new_car = Car(car_data)
 
         # Fix for date since scraper automatically uses todays date
-        new_car.data["datum"] = test_car_data["datum"]
+        new_car.data["date"] = test_car_data["date"]
 
         # Fix for test data ints since we are comparing them against strings
         for name in new_car.data:

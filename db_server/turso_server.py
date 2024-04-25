@@ -1,5 +1,6 @@
 import os
 import libsql_experimental as libsql
+import datetime
 from time import sleep
 
 
@@ -79,12 +80,12 @@ class Server:
         conn = self.get_connection()
         cur = conn.cursor()
         new_ids = []
-        for car_id in ids_list:
-            print(f"Checking {car_id}")
-            cur.execute(f"SELECT id FROM {table} WHERE id={car_id}")
+        for item_id in ids_list:
+            print(f"Checking {item_id}")
+            cur.execute(f"SELECT id FROM {table} WHERE id={item_id}")
             result = cur.fetchone()
             if not result:
-                new_ids.append(car_id)
+                new_ids.append(item_id)
         print(f"Found new new ids - {new_ids}")
         return new_ids
 
@@ -125,7 +126,10 @@ class Server:
         """
         conn = self.get_connection()
         cur = conn.cursor()
-        cur.execute("INSERT INTO links_cars VALUES(?, ?, ?);", (car_id, link, scraped))
+        cur.execute(
+            "INSERT INTO links_cars (id, link, scraped) VALUES(?, ?, ?);",
+            (car_id, link, scraped),
+        )
         conn.commit()
         if write_log_info:
             write_log_info(f"{car_id} - {link} added to the database.")
@@ -140,10 +144,10 @@ class Server:
         """
         conn = self.get_connection()
         cur = conn.cursor()
+        query = "INSERT INTO links_cars (id, link, scraped) VALUES(?, ?, ?);"
         batch_size = 30
         for i in range(0, len(cars), batch_size):
             batch = cars[i : i + batch_size]
-            query = "INSERT INTO links_cars VALUES(?, ?, ?);"
             cur.executemany(query, batch)
             conn.commit()
             if write_log_info:
@@ -163,7 +167,7 @@ class Server:
         conn = self.get_connection()
         cur = conn.cursor()
         cur.execute(
-            "INSERT INTO rs_links VALUES(?, ?, ?, ?);",
+            "INSERT INTO rs_links(id, link, type, scraped) VALUES(?, ?, ?, ?);",
             (rs_id, rs_link, rs_type, scraped),
         )
         conn.commit()
@@ -182,7 +186,7 @@ class Server:
         cur = conn.cursor()
         for rs_id, rs_link, rs_type, scraped in rs:
             cur.execute(
-                "INSERT INTO rs_links VALUES(?, ?, ?, ?);",
+                "INSERT INTO rs_links(id, link, type, scraped) VALUES(?, ?, ?, ?);",
                 (rs_id, rs_link, rs_type, scraped),
             )
             if write_log_info:
@@ -309,6 +313,52 @@ class Server:
             if write_log_error:
                 write_log_error(f"Error: {e}. Skipping rs.")
 
+    def rs_price_added_date(self, rs_id, date=datetime.date.today().isoformat()):
+        """
+        Checks if rs price is already added for given rs item.
+
+        Args:
+            rs_id: id of the rs item
+            date: date for which we are doing the check (default today)
+
+        Returns:
+            bool: present or not present
+        """
+        query = (
+            f"SELECT id, price, date FROM rs_prices WHERE id={rs_id} AND date='{date}';"
+        )
+        conn = self.get_connection()
+        cur = conn.cursor()
+        cur.execute(query)
+        result = cur.fetchone()
+        if result:
+            return True
+        return False
+
+    def add_rs_prices(self, rs_found):
+        """
+        Inserts prices for all rs found. Checks if already inserted that day.
+        """
+        conn = self.get_connection()
+        cur = conn.cursor()
+        to_add = []
+        today = datetime.date.today().isoformat()
+        for rs_item in rs_found:
+            rs_id = rs_item[0]
+            price = rs_item[1]
+            if not self.rs_price_added_date(rs_id):
+                to_add.append([rs_id, price, today])
+        query = "INSERT INTO rs_prices (id, price, date) VALUES(?, ?, ?)"
+        batch_size = 30
+        for i in range(0, len(to_add), batch_size):
+            batch = to_add[i : i + batch_size]
+            insert_data = []
+            for item in batch:
+                insert_data.append(tuple(item))
+            cur.executemany(query, insert_data)
+            conn.commit()
+        print("Inserted rs prices found.")
+
     def get_stats(self):
         """
         Returns the general stats, number of scraped cars and cars left to scrape.
@@ -376,6 +426,7 @@ class Server:
         items_names = [item["name"] for item in items_list]
         cur.execute(f"SELECT name FROM items WHERE store = '{store}';")
         data = cur.fetchall()
+        print("Checked for items using if_items_exist and got", data)
         if data:
             existing_items = [x[0] for x in data]
             missing_items = set(items_names) - set(existing_items)
@@ -396,10 +447,10 @@ class Server:
         """
         conn = self.get_connection()
         cur = conn.cursor()
+        query = "INSERT INTO items (name, type, unit, store) VALUES (?, ?, ?, ?);"
         batch_size = 30
         for i in range(0, len(items_list), batch_size):
             batch = items_list[i : i + batch_size]
-            query = "INSERT INTO items (name, type, unit, store) VALUES (?, ?, ?, ?);"
             insert_data = []
             for item in batch:
                 insert_data.append((item["name"], item["type"], item["unit"], store))

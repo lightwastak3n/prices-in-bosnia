@@ -1,7 +1,7 @@
 columns = {
     "id": "id",
     "Ime": "ime",
-    "datum": "datum",
+    "datum": "date",
     "Cijena": "cijena",
     "Stanje": "stanje",
     "Lokacija": "lokacija",
@@ -43,15 +43,11 @@ columns = {
     "Lift": "lift",
     "Telefonski priključak": "telefon",
     "Video nadzor": "video_nadzor",
-    "Za studente": "za_studente",
     "Kvadratura balkona": "kvadratura_balkona",
-    "Ostava/Špajz": "ostava",
-    "Ostava/špajz": "ostava",
     "Kućni ljubimci": "kucni_ljubimci",
     "Novogradnja": "novogradnja",
     "Alarm": "alarm",
     "Garaža": "garaza",
-    "Obnovljen": "obnovljen",
     "Broj spratova": "broj_spratova",
     "Okućnica (kvadratura)": "okucnica_kvadratura",
     "Iznajmljeno": "iznajmljeno",
@@ -71,7 +67,6 @@ radio_columns = [
     "voda",
     "balkon",
     "kablovska",
-    "ostava",
     "parking",
     "podrum",
     "uknjizeno",
@@ -90,7 +85,6 @@ radio_columns = [
     "komunalni_prikljucak",
     "iznajmljeno",
     "lift",
-    "za_studente",
     "kucni_ljubimci",
     "novogradnja",
     "nedavno_adaptiran",
@@ -149,19 +143,17 @@ class RealEstate:
 
     def fix_name(self):
         abc = "ABCČĆDDŽĐEFGHIJKLLJMNNJOPRSŠTUVZŽ"
-        allowed = abc + abc.lower() + "0123456789" + "wyq"
+        allowed = abc + abc.lower() + "0123456789" + " ,wyq"
         name = self.data["ime"]
-        for char in allowed:
-            name = name.replace(char, "")
+        for char in self.data["ime"]:
+            if char not in allowed:
+                name = name.replace(char, "")
         self.data["ime"] = name
 
     def fix_price_and_area(self):
         """
         Fixes price, cleans the integer.
         """
-        # self.data["cijena"] = self.data["cijena"].rstrip(" KM").replace(".", "")
-        # if "," in self.data["cijena"]:
-        #     self.data["cijena"] = self.data["cijena"].split(",")[0]
         if self.type == "Zemljiste" and "stanje" in self.data:
             del self.data["stanje"]
         if "kvadrata" in self.data:
@@ -180,6 +172,49 @@ class RealEstate:
         num = int(num)
         return num
 
+    def fix_number_of_rooms(self):
+        """
+        Room number should be int for a house and we can give it values for a apartment
+        """
+        if "broj_soba" in self.data:
+            name_room = {
+                "Garsonjera": 0,
+                "Jednosoban (1)": 1,
+                "Jednoiposoban (1.5)": 1.5,
+                "Dvosoban (2)": 2,
+                "Trosoban (3)": 3,
+                "Četverosoban (4)": 4,
+                "Petosoban i više": 5,
+                "1": 1,
+                "2": 2,
+                "3": 3,
+                "4": 4,
+                "5": 5,
+                "6": 6,
+                "7": 7,
+                "8+": 8,
+            }
+            self.data["broj_soba"] = name_room[self.data["broj_soba"]]
+
+    def fix_number_of_floors(self):
+        if "broj_spratova" in self.data:
+            if self.data["broj_spratova"] == "5+":
+                self.data["broj_spratova"] = 5
+            self.data["broj_spratova"] = int(self.data["broj_spratova"])
+
+    def fix_namjesten(self):
+        if self.type == "Stan":
+            namjesten_mapping = {
+                "Namješten": 2,
+                "Nenamješten": 0,
+                "Polunamješten": 1,
+                "Namje&scaron;ten": 2,
+                1: 2,
+                0: 0,
+            }
+            if "namjesten" in self.data:
+                self.data["namjesten"] = namjesten_mapping[self.data["namjesten"]]
+
     def fix_int_cols(self):
         """
         Yeah I dont even
@@ -196,47 +231,6 @@ class RealEstate:
             self.data["okucnica_kvadratura"] = self.fix_int(
                 self.data["okucnica_kvadratura"]
             )
-
-    def fix_number_of_rooms(self):
-        """
-        Room number should be int for a house and we can give it values for a apartment
-        """
-        if "broj_soba" in self.data and self.data["broj_soba"] == "8+":
-            self.data["broj_soba"] = 8
-        if self.type == "Stan" and "broj_soba" in self.data:
-            name_room = {
-                "Garsonjera": 0,
-                "Jednosoban (1)": 1,
-                "Jednoiposoban (1.5)": 1.5,
-                "Dvosoban (2)": 2,
-                "Trosoban (3)": 3,
-                "Četverosoban (4)": 4,
-                "Petosoban i više": 5,
-                "1": 1,
-                "2": 2,
-                "3": 3,
-                "4": 4,
-                "5": 5,
-            }
-            self.data["broj_soba"] = name_room[self.data["broj_soba"]]
-
-    def fix_number_of_floors(self):
-        if self.type == "Kuca":
-            if "broj_spratova" in self.data and self.data["broj_spratova"] == "5+":
-                self.data["broj_spratova"] = 5
-
-    def fix_namjesten(self):
-        if self.type == "Stan":
-            namjesten_mapping = {
-                "Namješten": 2,
-                "Nenamješten": 0,
-                "Polunamješten": 1,
-                "Namje&scaron;ten": 2,
-                1: 2,
-                0: 0,
-            }
-            if "namjesten" in self.data:
-                self.data["namjesten"] = namjesten_mapping[self.data["namjesten"]]
 
     def fix_radio_columns(self):
         """

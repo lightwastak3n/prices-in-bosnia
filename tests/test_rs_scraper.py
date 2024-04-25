@@ -36,7 +36,7 @@ def scrape_item(item_id, item_html_name, rs_type):
     listing_id = item_id
     listing_soup = get_page_soup(item_html_name)
 
-    listing_data = scraper.get_real_estate_details(listing_soup, listing_id, rs_type)
+    listing_data = scraper.get_real_estate_details(listing_soup, listing_id)
     new_listing = RealEstate(listing_data, rs_type)
 
     # Fix for test data ints since we are comparing them against strings
@@ -44,7 +44,7 @@ def scrape_item(item_id, item_html_name, rs_type):
     #     if isinstance(new_listing.data[name], str) and new_listing.data[name].isdigit():
     #         new_listing.data[name] = int(new_listing.data[name])
     # Fix todays date
-    # new_listing.data["datum"] = test_item_data["datum"]
+    new_listing.data["date"] = test_item_data["date"]
 
     return new_listing, test_item_data
 
@@ -57,9 +57,14 @@ def test_main_page_scrape():
 
     scraper.get_real_estates_from_main(get_main_pages=False)
 
+    turn_to_nums = lambda x: {int(k): int(x[k]) for k in x}
+
     test_houses = get_main_page_test_data("houses")
+    test_houses = turn_to_nums(test_houses)
     test_lands = get_main_page_test_data("land")
+    test_lands = turn_to_nums(test_lands)
     test_flats = get_main_page_test_data("flats")
+    test_flats = turn_to_nums(test_flats)
 
     assert scraper.real_estates["Stan"] == test_flats
     assert scraper.real_estates["Kuca"] == test_houses
@@ -68,16 +73,16 @@ def test_main_page_scrape():
 
 def test_land_scrape():
     new_land, test_land_data = scrape_item(53070662, "land1", "Zemljiste")
-    print(new_land.data)
-    print(test_land_data)
     assert new_land.data == test_land_data
 
 
-# def test_flat_scrape():
-#     new_flat, test_flat_data = scrape_item(48894962, "flat1", "Stan")
-#     assert new_flat.data == test_flat_data
-#
-#
-# def test_house_scrape():
-#     new_house, test_house_data = scrape_item(51868032, "house1", "Kuca")
-#     assert new_house.data == test_house_data
+def test_flat_scrape():
+    new_flat, test_flat_data = scrape_item(48894962, "flat1", "Stan")
+    print("TEST =", test_flat_data)
+    print("SCRAPER =", new_flat.data)
+    assert new_flat.data == test_flat_data
+
+
+def test_house_scrape():
+    new_house, test_house_data = scrape_item(51868032, "house1", "Kuca")
+    assert new_house.data == test_house_data

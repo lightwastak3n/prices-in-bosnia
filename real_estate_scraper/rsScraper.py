@@ -9,6 +9,32 @@ from datetime import date, datetime
 from bs4 import BeautifulSoup
 
 
+def run_js(js):
+    target_script = js.replace("new Map([])", "[]")
+    output = js2py.eval_js(target_script)
+    output = str(output)
+    if "Request failed with status code 404" in output:
+        print("Listing deleted")
+        return None
+    output = (
+        output.replace("None", "null")
+        .replace("False", "false")
+        .replace('"', "")
+        .replace("True", "true")
+        .replace("'", '"')
+        .replace("\\", "")
+    )
+    pattern = r'"description":\s*".*?"\s*,\s*"updated_at"'
+    output = re.sub(pattern, '"description": null, "updated_at"', output)
+    try:
+        output = json.loads(output)
+    except json.decoder.JSONDecodeError:
+        print("Json decode error probably some shit in the title")
+        print(output)
+        return None
+    return output
+
+
 class RealEstateScraper:
     """
     Real estate scraper object that scrapes the main page and checks for new real estate and also scrapes individual properties.
@@ -73,17 +99,12 @@ class RealEstateScraper:
                 if script.contents and "window.__NUXT__" in script.contents[0][:50]:
                     target_script = script.contents[0]
                     break
-            match = re.search(
-                r"results:\s*\[[^[\]]*(?:\[[^[\]]*\][^[\]]*)*\](?=,?\s*attributes)",
-                target_script,
-                re.DOTALL,
-            )
-            results = match.group(0)
-            listings_ids = re.findall(r"(?<=,id:)\d+,", results)
-            for id in listings_ids:
-                self.real_estates[rs_type][
-                    id[:-1]
-                ] = f"https://olx.ba/artikal/{id[:-1]}/"
+
+            print("Found script", target_script[:50])
+            data = run_js(target_script)
+            for listing in data["state"]["search"]["results"]:
+                # print(f"Found {listing['id']} - {listing['price']}")
+                self.real_estates[rs_type][listing["id"]] = listing["price"]
 
     def get_found_ids(self) -> tuple:
         """
@@ -96,6 +117,17 @@ class RealEstateScraper:
         flat_ids = list(self.real_estates["Stan"])
         land_ids = list(self.real_estates["Zemljiste"])
         return house_ids, flat_ids, land_ids
+
+    def get_all_rs_prices(self) -> list:
+        """
+        Gets all the rs_ids and prices as a list.
+        """
+        all_rs = [
+            [rs_id, price]
+            for rs_type, rs_dict in self.real_estates.items()
+            for rs_id, price in rs_dict.items()
+        ]
+        return all_rs
 
     def akcijska_cijena(self, rs_soup, data):
         """
@@ -110,7 +142,7 @@ class RealEstateScraper:
         price = price_p.text.split("KM")[1]
         data["Cijena"] = price
 
-    def get_real_estate_details(self, rs_soup, rs_id, rs_type):
+    def get_real_estate_details(self, rs_soup, rs_id):
         """
         Gets all the specs it can found on a given rs page.
         Name is found manually as h2 tag.
@@ -130,27 +162,7 @@ class RealEstateScraper:
         for script in all_scripts:
             if script.contents and "window.__NUXT__" in script.contents[0][:50]:
                 print("Finding script")
-                target_script = script.contents[0]
-                target_script = target_script.replace("new Map([])", "[]")
-                output = js2py.eval_js(target_script)
-                output = str(output)
-                if "Request failed with status code 404" in output:
-                    print("Listing deleted")
-                    return None
-                output = (
-                    output.replace("None", "null")
-                    .replace("False", "false")
-                    .replace("True", "true")
-                    .replace("'", '"')
-                    .replace("\\", "")
-                )
-                pattern = r'"description":\s*".*?"\s*,\s*"updated_at"'
-                output = re.sub(pattern, '"description": null, "updated_at"', output)
-                try:
-                    output = json.loads(output)
-                except json.decoder.JSONDecodeError:
-                    print("Json decode error probably some shit in the title")
-                    return None
+                output = run_js(script.contents[0])
 
                 # Get name, id, price
                 print("Getting name and price")
@@ -230,7 +242,7 @@ class RealEstateScraper:
         print(data)
         return data
 
-    def scrape_real_estate(self, rs_id, rs_link, rs_type, write_log_info):
+    def scrape_real_estate(self, rs_id, rs_type, write_log_info):
         """
         Scrapes individual real_estate.
 
@@ -241,6 +253,7 @@ class RealEstateScraper:
         Returns:
             data: dictionary of properties and values found on a given listing
         """
+        rs_link = f"https://olx.ba/artikal/{rs_id}/"
         rs_soup = self.get_soup(rs_link)
         try:
             data = self.get_real_estate_details(rs_soup, rs_id, rs_type)
