@@ -103,7 +103,6 @@ class RealEstateScraper:
             print("Found script", target_script[:50])
             data = run_js(target_script)
             for listing in data["state"]["search"]["results"]:
-                # print(f"Found {listing['id']} - {listing['price']}")
                 self.real_estates[rs_type][listing["id"]] = listing["price"]
 
     def get_found_ids(self) -> tuple:
@@ -163,6 +162,9 @@ class RealEstateScraper:
             if script.contents and "window.__NUXT__" in script.contents[0][:50]:
                 print("Finding script")
                 output = run_js(script.contents[0])
+                if output == None:
+                    print("Skipping.")
+                    return None
 
                 # Get name, id, price
                 print("Getting name and price")

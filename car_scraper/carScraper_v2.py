@@ -7,6 +7,36 @@ from datetime import datetime, date
 from bs4 import BeautifulSoup
 
 
+def run_js(js):
+    target_script = js.replace("new Map([])", "[]")
+    output = js2py.eval_js(target_script)
+    output = str(output)
+    if "Request failed with status code 404" in output:
+        print("Listing deleted")
+        return None
+    # Fix for car models that break json
+    output = output.replace("cee'd", "ceed")
+    output = output.replace("R'line", "Rline")
+
+    output = (
+        output.replace("None", "null")
+        .replace("False", "false")
+        .replace('"', "")
+        .replace("True", "true")
+        .replace("'", '"')
+        .replace("\\", "")
+    )
+    pattern = r'"description":\s*".*?"\s*,\s*"updated_at"'
+    output = re.sub(pattern, '"description": null, "updated_at"', output)
+    try:
+        output = json.loads(output)
+    except json.decoder.JSONDecodeError:
+        print("Json decode error probably some shit in the title")
+        print(output)
+        return None
+    return output
+
+
 class CarScraper:
     """
     Car scraper object that scrapes the main page and checks for new cars and also scrapes individual cars.
@@ -63,15 +93,10 @@ class CarScraper:
             if script.contents and "window.__NUXT__" in script.contents[0][:50]:
                 target_script = script.contents[0]
                 break
-        match = re.search(
-            r"results:\s*\[[^[\]]*(?:\[[^[\]]*\][^[\]]*)*\](?=,?\s*attributes)",
-            target_script,
-            re.DOTALL,
-        )
-        results = match.group(0)
-        car_ids = re.findall(r"(?<=,id:)\d+,", results)
-        for id in car_ids:
-            self.cars[id[:-1]] = f"https://olx.ba/artikal/{id[:-1]}/"
+        print("Found script", target_script[:50])
+        data = run_js(target_script)
+        for listing in data["state"]["search"]["results"]:
+            self.cars[listing["id"]] = f"https://olx.ba/artikal/{listing['id']}/"
 
     def get_found_ids(self) -> list:
         """
@@ -115,32 +140,36 @@ class CarScraper:
         for script in all_scripts:
             if script.contents and "window.__NUXT__" in script.contents[0][:50]:
                 target_script = script.contents[0]
-                target_script = target_script.replace("new Map([])", "[]")
-                output = js2py.eval_js(target_script)
-                output = str(output)
-                if "Request failed with status code 404" in output:
-                    print("Listing deleted")
+                # target_script = target_script.replace("new Map([])", "[]")
+                # output = js2py.eval_js(target_script)
+                # output = str(output)
+                # if "Request failed with status code 404" in output:
+                #     print("Listing deleted")
+                #     return None
+                # # Fix for car models that break json
+                # output = output.replace("cee'd", "ceed")
+                # output = output.replace("R'line", "Rline")
+                #
+                # output = (
+                #     output.replace("None", "null")
+                #     .replace("False", "false")
+                #     .replace("True", "true")
+                #     .replace("'", '"')
+                #     .replace("\\", "")
+                # )
+                # pattern = r'"description":\s*".*?"\s*,\s*"updated_at"'
+                # output = re.sub(pattern, '"description": null, "updated_at"', output)
+                #
+                # try:
+                #     output = json.loads(output)
+                # except json.decoder.JSONDecodeError:
+                #     print("Json decode error probably some shit in the title")
+                #     return None
+                # print("Got json")
+                output = run_js(target_script)
+                if output == None:
+                    print("Skipping")
                     return None
-                # Fix for car models that break json
-                output = output.replace("cee'd", "ceed")
-                output = output.replace("R'line", "Rline")
-
-                output = (
-                    output.replace("None", "null")
-                    .replace("False", "false")
-                    .replace("True", "true")
-                    .replace("'", '"')
-                    .replace("\\", "")
-                )
-                pattern = r'"description":\s*".*?"\s*,\s*"updated_at"'
-                output = re.sub(pattern, '"description": null, "updated_at"', output)
-
-                try:
-                    output = json.loads(output)
-                except json.decoder.JSONDecodeError:
-                    print("Json decode error probably some shit in the title")
-                    return None
-                print("Got json")
 
                 # Get name, id, price
                 print("Getting name and price")

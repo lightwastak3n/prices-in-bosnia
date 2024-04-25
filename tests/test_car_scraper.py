@@ -9,7 +9,10 @@ from car_scraper.car import Car
 def get_main_page_cars():
     with open("test_data.json", "r", encoding="utf-8") as f:
         data = json.load(f)
-    return data["cars"]
+    cars = {}
+    for car in data["cars"]:
+        cars[int(car)] = data["cars"][car]
+    return cars
 
 
 def get_car_data(car):
