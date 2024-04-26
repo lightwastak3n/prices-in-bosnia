@@ -1,13 +1,16 @@
 import os
 import libsql_experimental as libsql
 import datetime
-from time import sleep
+import json
 
 
 class Server:
     def __init__(self, db_org=None, token=None):
         self.db_org = db_org if db_org else os.getenv("turso_db_org")
         self.token = token if token else os.getenv("turso_db_token")
+        if self.db_org == None or self.token == None:
+            print("WARNING! TURSO CREDENTIALS NOT PROVIDED.")
+            raise ValueError("Value not provided.")
         self.db_link = "libsql://" + self.db_org + ".turso.io"
         self.rs_mapping = {
             "Kuca": "houses",
@@ -426,6 +429,7 @@ class Server:
         conn = self.get_connection()
         cur = conn.cursor()
         items_names = [item["name"] for item in items_list]
+        print(f"Running check if items exist against {items_names[:10]}")
         cur.execute(f"SELECT name FROM items WHERE store = '{store}';")
         data = cur.fetchall()
         print("Checked for items using if_items_exist and got", data)
@@ -436,6 +440,7 @@ class Server:
                 item for item in items_list if item["name"] in missing_items
             ]
         else:
+            print("All items are new items.")
             items_to_add = items_list
         return items_to_add
 

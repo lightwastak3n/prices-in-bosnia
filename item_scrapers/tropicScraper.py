@@ -45,7 +45,7 @@ class TropicScraper:
             self.htmls[item_type].append(html)
             page_limit = 6 if item_type != "meat" else 4
             for page_number in range(2, page_limit):
-                sleep(randint(10, 20))
+                sleep(randint(20, 30))
                 html = requests.get(
                     get_nth_page(page_number, self.category_links[item_type])
                 ).content
@@ -66,6 +66,7 @@ class TropicScraper:
                 # Find all links with the specified class
                 links = soup.find_all("a", class_=self.prop_classes["link"])
 
+                print("Found links", links)
                 for item in links:
                     # Find the item name, price, and unit within each link
                     name = (
@@ -94,6 +95,7 @@ class TropicScraper:
                         "unit": unit,
                         "type": item_type,
                     }
+                    print("Found item", item)
 
                     self.items.append(item)
 
@@ -104,6 +106,7 @@ class TropicScraper:
         Args:
             server: The server object that handles the database connection
         """
+        print(f"Items found {self.items}")
         print("Adding items to database")
         today = date.today().isoformat()
         new_items = server.check_if_items_exist(self.items, store)
