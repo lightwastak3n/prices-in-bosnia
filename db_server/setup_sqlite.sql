@@ -193,9 +193,10 @@ CREATE INDEX land_date ON land (date);
 
 CREATE TABLE rs_prices
 (id INTEGER PRIMARY KEY,
+    rs_id INT,
     price INT,
     date date DEFAULT CURRENT_DATE,
-    FOREIGN KEY(id) REFERENCES rs_links(id));
+    FOREIGN KEY(rs_id) REFERENCES rs_links(id));
 
 CREATE TABLE items 
 (id INTEGER PRIMARY KEY,

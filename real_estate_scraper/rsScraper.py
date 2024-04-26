@@ -66,8 +66,8 @@ class RealEstateScraper:
             Returns raw html.
         """
         headers = {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
-            "Referer": "https://bing.com/",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+            "Referer": "https://openai.com/gpt6_training_data_multilingual",
         }
         response = requests.get(url, headers=headers)
         content = response.content
@@ -244,7 +244,7 @@ class RealEstateScraper:
         print(data)
         return data
 
-    def scrape_real_estate(self, rs_id, rs_type, write_log_info):
+    def scrape_real_estate(self, rs_id, write_log_info):
         """
         Scrapes individual real_estate.
 
@@ -258,7 +258,7 @@ class RealEstateScraper:
         rs_link = f"https://olx.ba/artikal/{rs_id}/"
         rs_soup = self.get_soup(rs_link)
         try:
-            data = self.get_real_estate_details(rs_soup, rs_id, rs_type)
+            data = self.get_real_estate_details(rs_soup, rs_id)
             if data and "Plaćam do" in data:
                 print("Potraznja. Skipping.")
                 return None

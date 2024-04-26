@@ -26,14 +26,10 @@ while True:
         real_estate_scraper.get_real_estates_from_main()
         found_houses, found_flats, found_lands = real_estate_scraper.get_found_ids()
 
-        # Add prices found for all listings to rs_prices
-        all_rs = real_estate_scraper.get_all_rs_prices()
-        server.add_rs_prices(all_rs)
-
         # New items are inserted into respective tables
-        new_houses = server.items_not_in_db("houses", found_houses)
-        new_flats = server.items_not_in_db("flats", found_flats)
-        new_lands = server.items_not_in_db("land", found_lands)
+        new_houses = server.items_not_in_db("rs_links", found_houses)
+        new_flats = server.items_not_in_db("rs_links", found_flats)
+        new_lands = server.items_not_in_db("rs_links", found_lands)
 
         new_found = len(new_houses) + len(new_flats) + len(new_lands)
 
@@ -57,6 +53,12 @@ while True:
         server.add_rs_links(add_lands, write_log_info)
         print("Added new listings to the server.")
         not_scraped = server.get_non_scraped_rs()
+
+        # Add prices found for all listings to rs_prices
+        all_rs = real_estate_scraper.get_all_rs_prices()
+        print("Adding prices for all rs found")
+        server.add_rs_prices(all_rs)
+
         total_not_scraped = len(not_scraped)
         print("Got the non scraped listings from the server.")
 
@@ -81,9 +83,7 @@ while True:
             rs_link = item[1]
             rs_type = item[2]
             print(f"Scraping {rs_link}.")
-            data = real_estate_scraper.scrape_real_estate(
-                rs_id, rs_type, write_log_info
-            )
+            data = real_estate_scraper.scrape_real_estate(rs_id, write_log_info)
             if data:
                 new_rs = RealEstate(data, rs_type)
                 print("Inserting", new_rs.data)

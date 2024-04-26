@@ -20,12 +20,15 @@ class Server:
         # self.conn = libsql.connect("prices_bosnia.db")
         # self.cur = self.conn.cursor()
         conn = libsql.connect(database=self.db_link, auth_token=self.token)
+        # If using local db
+        # conn = libsql.connect("bosnia_prices.db", sync_url=self.db_link, auth_token=self.token)
         return conn
 
     def execute_script(self, file_path):
         conn = self.get_connection()
         with open(file_path, "r") as file:
             script = file.read()
+        print("About to execute", script)
         conn.executescript(script)
         conn.commit()
 
@@ -86,7 +89,7 @@ class Server:
             result = cur.fetchone()
             if not result:
                 new_ids.append(item_id)
-        print(f"Found new new ids - {new_ids}")
+        print(f"Found new ids - {new_ids}")
         return new_ids
 
     def get_non_scraped_cars(self):
@@ -192,7 +195,7 @@ class Server:
             if write_log_info:
                 write_log_info(f"{rs_id} - {rs_link} added to the database.")
             print(f"{rs_id} - {rs_link} added to the database.")
-        conn.commit()
+            conn.commit()
 
     def get_missing_seller_cars(self):
         """
@@ -262,12 +265,12 @@ class Server:
         sql = f"INSERT INTO cars({columns}) VALUES({placeholders});"
         values = tuple(data.values())
         try:
-            print(f"Inserting {values} using {sql}")
             cur.execute(sql, values)
             conn.commit()
             if write_log_info:
                 write_log_info(f"Scraped car {data['ime']}")
             print(f"Scraped car {data['ime']}")
+            self.increase_total_scraped("cars", 1)
         except Exception as e:
             print(f"Error {e}. Car {data['ime']} doesn't have complete data. Skipping.")
             if write_log_error:
@@ -308,29 +311,31 @@ class Server:
             if write_log_info:
                 write_log_info(f"Scraped rs {data['ime']}")
             print(f"Scraped - {data['ime']}")
+            self.increase_total_scraped(table_name, 1)
         except Exception as e:
             print(f"Error {e}. Rs {data['ime']} doesn't have complete data. Skipping.")
             if write_log_error:
                 write_log_error(f"Error: {e}. Skipping rs.")
 
-    def rs_price_added_date(self, rs_id, date=datetime.date.today().isoformat()):
+    def rs_price_added_date(self, rs_id, date):
         """
         Checks if rs price is already added for given rs item.
 
         Args:
             rs_id: id of the rs item
-            date: date for which we are doing the check (default today)
+            date: date for which we are doing the check
 
         Returns:
             bool: present or not present
         """
         query = (
-            f"SELECT id, price, date FROM rs_prices WHERE id={rs_id} AND date='{date}';"
+            f"SELECT rs_id, price, date FROM rs_prices WHERE rs_id={rs_id} AND date='{date}';"
         )
         conn = self.get_connection()
         cur = conn.cursor()
         cur.execute(query)
         result = cur.fetchone()
+        print(f"Checked rs_prices for {rs_id} on {date} and got {result}")
         if result:
             return True
         return False
@@ -346,16 +351,13 @@ class Server:
         for rs_item in rs_found:
             rs_id = rs_item[0]
             price = rs_item[1]
-            if not self.rs_price_added_date(rs_id):
-                to_add.append([rs_id, price, today])
-        query = "INSERT INTO rs_prices (id, price, date) VALUES(?, ?, ?)"
+            if not self.rs_price_added_date(rs_id, today):
+                to_add.append((rs_id, price, today))
+        query = "INSERT INTO rs_prices (rs_id, price, date) VALUES(?, ?, ?)"
         batch_size = 30
         for i in range(0, len(to_add), batch_size):
             batch = to_add[i : i + batch_size]
-            insert_data = []
-            for item in batch:
-                insert_data.append(tuple(item))
-            cur.executemany(query, insert_data)
+            cur.executemany(query, batch)
             conn.commit()
         print("Inserted rs prices found.")
 
@@ -486,6 +488,7 @@ class Server:
             query = "INSERT INTO item_prices (item_id, price, date) VALUES (?, ?, ?);"
             cur.executemany(query, batch_items_data)
             conn.commit()
+        self.increase_total_scraped("items_dates", len(items_list))
 
     def get_records_on_date(self, table, date_column, date):
         """
