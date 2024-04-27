@@ -78,7 +78,7 @@ CREATE TABLE houses
     stanje TEXT,
     lokacija TEXT,
     adresa TEXT,
-    iznamjljeno INT,
+    iznajmljeno INT,
     lat FLOAT,
     lng FLOAT,
     godina_izgradnje TEXT,

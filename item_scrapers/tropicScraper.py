@@ -45,7 +45,7 @@ class TropicScraper:
             self.htmls[item_type].append(html)
             page_limit = 6 if item_type != "meat" else 4
             for page_number in range(2, page_limit):
-                sleep(randint(20, 30))
+                sleep(randint(10, 20))
                 html = requests.get(
                     get_nth_page(page_number, self.category_links[item_type])
                 ).content
@@ -115,5 +115,4 @@ class TropicScraper:
         else:
             server.insert_items(new_items, store)
         server.insert_item_prices(self.items, store, today)
-        server.increase_total_scraped("items_dates", len(self.items))
         return len(new_items), len(self.items)

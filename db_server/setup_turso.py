@@ -24,14 +24,27 @@ def delete_tables():
     conn.commit()
 
 
+def create_triggers():
+    conn = server.get_connection()
+    cur = conn.cursor()
+    # create_land_trigger = "CREATE TRIGGER insert_new_lan AFTER INSERT ON land BEGIN UPDATE scraping_stats SET land = land + 1; END;"
+    create_house_trigger = "CREATE TRIGGER insert_new_house AFTER INSERT ON houses BEGIN UPDATE scraping_stats SET houses = houses + 1; END;"
+    # create_flats_trigger = "CREATE TRIGGER insert_new_flats AFTER INSERT ON flats BEGIN UPDATE scraping_stats SET flats = flats + 1; END;"
+    # create_car_trigger = "CREATE TRIGGER insert_new_car AFTER INSERT ON cars BEGIN UPDATE scraping_stats SET cars = cars + 1; END;"
+    # cur.execute(create_land_trigger)
+    cur.execute(create_house_trigger)
+    # cur.execute(create_flats_trigger)
+    # cur.execute(create_car_trigger)
+    conn.commit()
+
+
 server = Server()
 
-# Create tables
-server.execute_script("setup_sqlite.sql")
-server.execute_script("sqlite_triggers.sql")
-# delete_tables()
-# server.conn.sync()
 
+# Create tables
+# server.execute_script("setup_sqlite.sql")
+create_triggers()
+# delete_tables()
 
 # car_links = []
 # with open("car_links.csv", "r") as f:

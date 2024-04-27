@@ -1,7 +1,6 @@
 import os
 import libsql_experimental as libsql
 import datetime
-import json
 
 
 class Server:
@@ -24,7 +23,7 @@ class Server:
         # self.cur = self.conn.cursor()
         conn = libsql.connect(database=self.db_link, auth_token=self.token)
         # If using local db
-        # conn = libsql.connect("bosnia_prices.db", sync_url=self.db_link, auth_token=self.token)
+        # conn = libsql.connect("~/bosnia_prices.db", sync_url=self.db_link, auth_token=self.token)
         return conn
 
     def execute_script(self, file_path):
@@ -273,7 +272,6 @@ class Server:
             if write_log_info:
                 write_log_info(f"Scraped car {data['ime']}")
             print(f"Scraped car {data['ime']}")
-            self.increase_total_scraped("cars", 1)
         except Exception as e:
             print(f"Error {e}. Car {data['ime']} doesn't have complete data. Skipping.")
             if write_log_error:
@@ -314,48 +312,56 @@ class Server:
             if write_log_info:
                 write_log_info(f"Scraped rs {data['ime']}")
             print(f"Scraped - {data['ime']}")
-            self.increase_total_scraped(table_name, 1)
         except Exception as e:
             print(f"Error {e}. Rs {data['ime']} doesn't have complete data. Skipping.")
             if write_log_error:
                 write_log_error(f"Error: {e}. Skipping rs.")
 
-    def rs_price_added_date(self, rs_id, date):
+    def rs_price_added_date(self, rs_ids_prices, date):
         """
-        Checks if rs price is already added for given rs item.
+        Checks if rs price is already added for given rs id and date.
 
         Args:
-            rs_id: id of the rs item
+            rs_ids_prices: 2d list of found rs - [[rs_id, price],...]
             date: date for which we are doing the check
 
         Returns:
             bool: present or not present
         """
-        query = (
-            f"SELECT rs_id, price, date FROM rs_prices WHERE rs_id={rs_id} AND date='{date}';"
-        )
+        # Fetch individual id given
+        # query = (
+        #     f"SELECT rs_id, price, date FROM rs_prices WHERE rs_id={rs_id} AND date='{date}';"
+        # )
+        # Fetch all ids stored that day and compare against them?
+        query = f"SELECT rs_id FROM rs_prices WHERE date='{date}'"
         conn = self.get_connection()
         cur = conn.cursor()
         cur.execute(query)
-        result = cur.fetchone()
-        print(f"Checked rs_prices for {rs_id} on {date} and got {result}")
-        if result:
-            return True
-        return False
+        result = cur.fetchall()
+        if not result:
+            return rs_ids_prices
+        all_ids = [x[0] for x in result]
+        new_ids = []
+        for rs in rs_ids_prices:
+            if rs[0] not in all_ids:
+                new_ids.append(rs)
+        print(
+            f"Checked rs_prices for {rs_ids_prices[:10]}... on {date} and got {len(new_ids)} new ids."
+        )
+        return new_ids
 
     def add_rs_prices(self, rs_found):
         """
         Inserts prices for all rs found. Checks if already inserted that day.
+
+        Args:
+            rs_found: 2d list of found rs - [[rs_id, price],...]
         """
         conn = self.get_connection()
         cur = conn.cursor()
-        to_add = []
         today = datetime.date.today().isoformat()
-        for rs_item in rs_found:
-            rs_id = rs_item[0]
-            price = rs_item[1]
-            if not self.rs_price_added_date(rs_id, today):
-                to_add.append((rs_id, price, today))
+        new_rs_today = self.rs_price_added_date(rs_found, today)
+        to_add = [(rs[0], rs[0], today) for rs in new_rs_today]
         query = "INSERT INTO rs_prices (rs_id, price, date) VALUES(?, ?, ?)"
         batch_size = 30
         for i in range(0, len(to_add), batch_size):
