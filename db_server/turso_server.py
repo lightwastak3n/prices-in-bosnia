@@ -1,6 +1,13 @@
 import os
 import libsql_experimental as libsql
 import datetime
+import json
+
+
+def get_config():
+    with open("/home/sasa/Documents/Code/prices-in-bosnia/db_server/config.json", "r") as f:
+        data = f.read()
+    return json.loads(data)
 
 
 class Server:
@@ -9,7 +16,10 @@ class Server:
         self.token = token if token else os.getenv("turso_db_token")
         if self.db_org == None or self.token == None:
             print("WARNING! TURSO CREDENTIALS NOT PROVIDED.")
-            raise ValueError("Value not provided.")
+            print("Using config to find them.")
+            data = get_config()
+            self.db_org = data["turso_db_org"]
+            self.token = data["turso_db_token"]
         self.db_link = "libsql://" + self.db_org + ".turso.io"
         self.rs_mapping = {
             "Kuca": "houses",
