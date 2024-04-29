@@ -5,7 +5,9 @@ import json
 
 
 def get_config():
-    with open("/home/sasa/Documents/Code/prices-in-bosnia/db_server/config.json", "r") as f:
+    with open(
+        "/home/sasa/Documents/Code/prices-in-bosnia/db_server/config.json", "r"
+    ) as f:
         data = f.read()
     return json.loads(data)
 

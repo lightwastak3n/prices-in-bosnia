@@ -140,32 +140,6 @@ class CarScraper:
         for script in all_scripts:
             if script.contents and "window.__NUXT__" in script.contents[0][:50]:
                 target_script = script.contents[0]
-                # target_script = target_script.replace("new Map([])", "[]")
-                # output = js2py.eval_js(target_script)
-                # output = str(output)
-                # if "Request failed with status code 404" in output:
-                #     print("Listing deleted")
-                #     return None
-                # # Fix for car models that break json
-                # output = output.replace("cee'd", "ceed")
-                # output = output.replace("R'line", "Rline")
-                #
-                # output = (
-                #     output.replace("None", "null")
-                #     .replace("False", "false")
-                #     .replace("True", "true")
-                #     .replace("'", '"')
-                #     .replace("\\", "")
-                # )
-                # pattern = r'"description":\s*".*?"\s*,\s*"updated_at"'
-                # output = re.sub(pattern, '"description": null, "updated_at"', output)
-                #
-                # try:
-                #     output = json.loads(output)
-                # except json.decoder.JSONDecodeError:
-                #     print("Json decode error probably some shit in the title")
-                #     return None
-                # print("Got json")
                 output = run_js(target_script)
                 if output == None:
                     print("Skipping")

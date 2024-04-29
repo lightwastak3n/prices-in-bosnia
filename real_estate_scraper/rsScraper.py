@@ -262,6 +262,9 @@ class RealEstateScraper:
             if data and "Plaćam do" in data:
                 print("Potraznja. Skipping.")
                 return None
+            if data and "ime" not in data:
+                print("Listing deleted. Skipping.")
+                return None
             return data
         except KeyError:
             print(KeyError)
